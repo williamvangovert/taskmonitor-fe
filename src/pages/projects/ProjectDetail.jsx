@@ -161,6 +161,7 @@ const ProjectDetail = () => {
                     {timeline.duration_days} hari
                   </div>
                 </div>
+                <div className="text-right">
                   <div className="flex items-center space-x-2 mb-2 justify-end">
                     <button 
                       onClick={(e) => openEditModal(e, timeline)}

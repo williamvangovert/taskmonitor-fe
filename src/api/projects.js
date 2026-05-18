@@ -1,8 +1,8 @@
 import axios from './axios';
 
-export const getProjects = async () => {
-  const { data } = await axios.get('/projects');
-  return data;
+export const getProjects = async (page = 1) => {
+  const { data } = await axios.get(`/projects?page=${page}`);
+  return data; // sekarang return { data: [...], current_page, last_page, total }
 };
 
 export const getProject = async (id) => {
