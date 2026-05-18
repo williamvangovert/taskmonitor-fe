@@ -11,7 +11,7 @@ import ProjectDetail from '../pages/projects/ProjectDetail';
 import TimelineDetail from '../pages/timelines/TimelineDetail';
 
 const ProtectedRoute = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token) {
     return <Navigate to="/login" replace />;
   }

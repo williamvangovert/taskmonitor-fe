@@ -1,17 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProject } from '../../api/projects';
+import { createTimeline } from '../../api/timelines';
 import { ArrowLeft, Plus, ChevronRight } from 'lucide-react';
+import Modal from '../../components/common/Modal';
 
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    priority: 'sedang'
+  });
   
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: () => getProject(id),
   });
+
+  const mutation = useMutation({
+    mutationFn: (data) => createTimeline(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      setIsModalOpen(false);
+      setFormData({
+        title: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        priority: 'sedang'
+      });
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutation.mutate(formData);
+  };
 
   if (isLoading) return <div className="p-8">Memuat data...</div>;
 
@@ -39,7 +70,10 @@ const ProjectDetail = () => {
             <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase">
               {project.status?.replace('_', ' ')}
             </span>
-            <button className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
               <Plus size={18} />
               <span>New Timeline</span>
             </button>
@@ -113,6 +147,68 @@ const ProjectDetail = () => {
           ))}
         </div>
       </div>
+      {/* Timeline Creation Modal */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Add New Timeline"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Timeline Title</label>
+            <input 
+              type="text" 
+              required
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="E.g. Phase 1: Planning"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+              <input 
+                type="date" 
+                required
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.start_date}
+                onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">End Date</label>
+              <input 
+                type="date" 
+                required
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.end_date}
+                onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
+            <select 
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.priority}
+              onChange={(e) => setFormData({...formData, priority: e.target.value})}
+            >
+              <option value="rendah">Rendah</option>
+              <option value="sedang">Sedang</option>
+              <option value="penting">Penting</option>
+              <option value="mendesak">Mendesak</option>
+            </select>
+          </div>
+          <button 
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+          >
+            {mutation.isPending ? 'Adding...' : 'Add Timeline'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };

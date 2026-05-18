@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatCard = ({ title, value, subValue, icon: Icon, trend, color = "blue" }) => {
+const StatCard = ({ title, value, subValue, icon: Icon, trend, color = "blue", className = "" }) => {
   const colorClasses = {
     blue: "text-blue-600 bg-blue-50",
     red: "text-red-600 bg-red-50",
@@ -9,7 +9,7 @@ const StatCard = ({ title, value, subValue, icon: Icon, trend, color = "blue" })
   };
 
   return (
-    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+    <div className={`bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow ${className}`}>
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center space-x-2 text-gray-500 mb-1">

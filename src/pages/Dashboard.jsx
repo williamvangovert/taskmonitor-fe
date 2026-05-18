@@ -11,8 +11,10 @@ import {
   ListTodo, 
   Users, 
   TrendingUp,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from 'lucide-react';
+import Modal from '../components/common/Modal';
 
 const Dashboard = () => {
   const { data: stats, isLoading } = useQuery({
@@ -38,6 +40,16 @@ const Dashboard = () => {
       return data;
     }
   });
+
+  const { data: criticalTasks, isLoading: isLoadingCritical } = useQuery({
+    queryKey: ['dashboard-critical'],
+    queryFn: async () => {
+      const { data } = await axios.get('/dashboard/critical');
+      return data;
+    }
+  });
+
+  const [isCriticalModalOpen, setIsCriticalModalOpen] = React.useState(false);
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Memuat data...</div>;
 
@@ -74,6 +86,16 @@ const Dashboard = () => {
           icon={Clock} 
           color="orange"
         />
+        <div onClick={() => setIsCriticalModalOpen(true)} className="cursor-pointer group">
+          <StatCard 
+            title="Deadline 2 Hari" 
+            value={stats?.critical_deadlines || 0} 
+            subValue="Sangat Mendesak" 
+            icon={Bell} 
+            color="red"
+            className="group-hover:shadow-md transition-shadow ring-2 ring-red-500/20"
+          />
+        </div>
         <StatCard 
           title="Completion Rate" 
           value={`${stats?.completion_rate || 0}%`} 
@@ -205,6 +227,46 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Critical Deadlines Modal */}
+      <Modal
+        isOpen={isCriticalModalOpen}
+        onClose={() => setIsCriticalModalOpen(false)}
+        title="Deadline Sangat Mendesak (2 Hari)"
+      >
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {isLoadingCritical ? (
+            <div className="text-center py-4">Memuat data...</div>
+          ) : criticalTasks?.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 italic">Tidak ada deadline mendesak dalam 2 hari ke depan. ✨</div>
+          ) : (
+            criticalTasks?.map((task) => (
+              <div key={task.id} className="p-4 bg-red-50 rounded-xl border border-red-100 flex justify-between items-center">
+                <div>
+                  <div className="font-bold text-red-900">{task.title}</div>
+                  <div className="text-xs text-red-600 mt-1">
+                    Due: {new Date(task.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                  <div className="text-[10px] text-red-400 font-medium uppercase mt-1">
+                    {task.timeline?.project?.title} — {task.timeline?.title}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                    H-{task.days_until}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <button 
+          onClick={() => setIsCriticalModalOpen(false)}
+          className="w-full mt-6 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors"
+        >
+          Tutup
+        </button>
+      </Modal>
     </div>
   );
 };

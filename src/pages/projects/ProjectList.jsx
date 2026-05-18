@@ -1,15 +1,48 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getProjects } from '../../api/projects';
+import { getProjects, createProject } from '../../api/projects';
 import { Plus } from 'lucide-react';
+import Modal from '../../components/common/Modal';
 
 const ProjectList = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    priority: 'sedang',
+    status: 'pending'
+  });
+
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: getProjects
   });
+
+  const mutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsModalOpen(false);
+      setFormData({
+        title: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        priority: 'sedang',
+        status: 'pending'
+      });
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutation.mutate(formData);
+  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -37,7 +70,10 @@ const ProjectList = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Daftar Projects</h1>
         </div>
-        <button className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
           <Plus size={20} />
           <span>New Project</span>
         </button>
@@ -116,6 +152,67 @@ const ProjectList = () => {
           ✨ Klik baris project untuk melihat timeline di dalamnya
         </div>
       </div>
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Create New Project"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Project Title</label>
+            <input 
+              type="text" 
+              required
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="E.g. Website Redesign"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+              <input 
+                type="date" 
+                required
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.start_date}
+                onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">End Date</label>
+              <input 
+                type="date" 
+                required
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.end_date}
+                onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
+            <select 
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.priority}
+              onChange={(e) => setFormData({...formData, priority: e.target.value})}
+            >
+              <option value="rendah">Rendah</option>
+              <option value="sedang">Sedang</option>
+              <option value="penting">Penting</option>
+              <option value="mendesak">Mendesak</option>
+            </select>
+          </div>
+          <button 
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+          >
+            {mutation.isPending ? 'Creating...' : 'Create Project'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };

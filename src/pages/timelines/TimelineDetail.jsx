@@ -1,17 +1,45 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getRequirements } from '../../api/requirements';
-import { List, LayoutGrid } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getRequirements, createRequirement } from '../../api/requirements';
+import { List, LayoutGrid, Clock, Plus } from 'lucide-react';
+import Modal from '../../components/common/Modal';
 
 const TimelineDetail = () => {
   const { tid } = useParams();
+  const queryClient = useQueryClient();
   const [view, setView] = useState('kanban'); // Default to kanban for MS Planner feel
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    due_date: '',
+    priority: 'sedang'
+  });
   
   const { data: requirements, isLoading, error } = useQuery({
     queryKey: ['requirements', tid],
     queryFn: () => getRequirements(tid),
   });
+
+  const mutation = useMutation({
+    mutationFn: (data) => createRequirement(tid, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+      setIsModalOpen(false);
+      setFormData({
+        title: '',
+        description: '',
+        due_date: '',
+        priority: 'sedang'
+      });
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutation.mutate(formData);
+  };
 
   if (isLoading) return <div className="p-8">Memuat rincian tugas...</div>;
   if (error) return <div className="p-8 text-red-500">Error memuat data.</div>;
@@ -35,19 +63,28 @@ const TimelineDetail = () => {
     <div className="p-8 bg-gray-50 min-h-full">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Requirements Detail</h1>
-        <div className="flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+        <div className="flex items-center space-x-4">
           <button 
-            onClick={() => setView('list')}
-            className={`p-2 rounded-md ${view === 'list' ? 'bg-gray-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg shadow-sm font-semibold hover:bg-primary-700 transition-colors"
           >
-            <List size={20} />
+            <Plus size={20} />
+            <span>New Requirement</span>
           </button>
-          <button 
-            onClick={() => setView('kanban')}
-            className={`p-2 rounded-md ${view === 'kanban' ? 'bg-gray-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            <LayoutGrid size={20} />
-          </button>
+          <div className="flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+            <button 
+              onClick={() => setView('list')}
+              className={`p-2 rounded-md ${view === 'list' ? 'bg-gray-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <List size={20} />
+            </button>
+            <button 
+              onClick={() => setView('kanban')}
+              className={`p-2 rounded-md ${view === 'kanban' ? 'bg-gray-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <LayoutGrid size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -115,6 +152,56 @@ const TimelineDetail = () => {
           ))}
         </div>
       )}
+      {/* Requirement Creation Modal */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Add New Requirement"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Requirement Title</label>
+            <input 
+              type="text" 
+              required
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="E.g. Define technical specs"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Due Date</label>
+            <input 
+              type="date" 
+              required
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.due_date}
+              onChange={(e) => setFormData({...formData, due_date: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
+            <select 
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.priority}
+              onChange={(e) => setFormData({...formData, priority: e.target.value})}
+            >
+              <option value="rendah">Rendah</option>
+              <option value="sedang">Sedang</option>
+              <option value="penting">Penting</option>
+              <option value="mendesak">Mendesak</option>
+            </select>
+          </div>
+          <button 
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+          >
+            {mutation.isPending ? 'Adding...' : 'Add Requirement'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };

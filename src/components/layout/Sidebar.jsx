@@ -15,17 +15,17 @@ const Sidebar = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     window.location.href = '/login';
   };
 
   return (
     <div className="w-64 bg-gray-900 h-screen text-white flex flex-col">
-      <div className="p-6 text-xl font-bold border-b border-gray-800">
+      <Link to="/" className="p-6 text-xl font-bold border-b border-gray-800 block hover:text-primary-400 transition-colors">
         TaskMonitor
-      </div>
-      <nav className="flex-1 p-4">
+      </Link>
+      <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
           {menuItems.map((item) => (
             <li key={item.path}>

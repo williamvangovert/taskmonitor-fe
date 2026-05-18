@@ -13,8 +13,8 @@ const Login = () => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       navigate('/');
     },
     onError: (err) => {
