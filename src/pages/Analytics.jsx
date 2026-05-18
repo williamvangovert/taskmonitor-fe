@@ -2,13 +2,11 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Tooltip,
+  Legend,
   Cell
 } from 'recharts';
 
@@ -21,21 +19,27 @@ const Analytics = () => {
     }
   });
 
-  // Mock data for "Workload per User" based on design
-  const workloadData = [
-    { name: 'Dani Pratama', tasks: 15 },
-    { name: 'Budi Santoso', tasks: 12 },
-    { name: 'Sari Wulandari', tasks: 10 },
-    { name: 'Rina Kartika', tasks: 8 },
-    { name: 'Hendra Tan', tasks: 6 },
-  ];
 
   const statusData = stats?.status_distribution ? Object.keys(stats.status_distribution).map(key => ({
     name: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
-    value: stats.status_distribution[key]
+    value: parseInt(stats.status_distribution[key] || 0)
   })) : [];
 
   const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#ef4444', '#6366f1'];
+
+  // Data for Pie Chart
+  const total = parseInt(stats?.total_requirements || 0);
+  const completed = parseInt(stats?.status_distribution?.completed || 0);
+  const overdue = parseInt(stats?.overdue_count || 0);
+  const upcoming = parseInt(stats?.upcoming_deadlines || 0);
+  const onTrack = Math.max(0, total - completed - overdue - upcoming);
+
+  const pieData = [
+    { name: 'Selesai', value: completed, color: '#22c55e' },
+    { name: 'Mendekati Deadline', value: upcoming, color: '#eab308' },
+    { name: 'Melewati Tenggat', value: overdue, color: '#ef4444' },
+    { name: 'Aman (On Track)', value: onTrack, color: '#3b82f6' }
+  ].filter(item => item.value > 0);
 
   if (isLoading) return <div className="p-8">Memuat data...</div>;
 
@@ -63,28 +67,6 @@ const Analytics = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Workload per User */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <h2 className="text-sm font-bold text-gray-800 mb-6">Workload per User</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart layout="vertical" data={workloadData} margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#6b7280' }}
-                />
-                <Tooltip cursor={{ fill: '#f9fafb' }} />
-                <Bar dataKey="tasks" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={12} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
         {/* Distribusi Status */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <h2 className="text-sm font-bold text-gray-800 mb-6">Distribusi Status</h2>
@@ -106,6 +88,41 @@ const Analytics = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Progres Deadline Requirements */}
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h2 className="text-sm font-bold text-gray-800 mb-6">Progres Tenggat Waktu Requirements</h2>
+          <div className="h-64">
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value} tasks`, 'Jumlah']}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
+                Belum ada data requirements
+              </div>
+            )}
           </div>
         </div>
       </div>
