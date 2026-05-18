@@ -45,7 +45,7 @@ const Dashboard = () => {
     queryKey: ['dashboard-projects'],
     queryFn: async () => {
       const { data } = await axios.get('/projects');
-      return data;
+      return data.data;
     }
   });
 
