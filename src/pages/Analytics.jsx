@@ -26,6 +26,13 @@ const Analytics = () => {
   })) : [];
 
   const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#ef4444', '#6366f1'];
+  
+  const STATUS_COLORS = {
+    'Pending': '#eab308',
+    'In Progress': '#3b82f6',
+    'Completed': '#22c55e',
+    'Overdue': '#ef4444'
+  };
 
   // Data for Pie Chart
   const total = parseInt(stats?.total_requirements || 0);
@@ -82,7 +89,7 @@ const Analytics = () => {
                     className="h-1.5 rounded-full" 
                     style={{ 
                       width: `${(entry.value / (stats?.total_requirements || 1)) * 100}%`,
-                      backgroundColor: COLORS[index % COLORS.length]
+                      backgroundColor: STATUS_COLORS[entry.name] || '#6b7280'
                     }}
                   ></div>
                 </div>

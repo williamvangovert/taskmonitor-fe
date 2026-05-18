@@ -94,7 +94,6 @@ const TimelineDetail = () => {
   const columns = [
     { title: 'Pending', status: 'pending', color: 'bg-gray-100' },
     { title: 'In Progress', status: 'in_progress', color: 'bg-blue-50' },
-    { title: 'In Review', status: 'review', color: 'bg-orange-50' },
     { title: 'Completed', status: 'completed', color: 'bg-green-50' },
   ];
 
@@ -217,7 +216,6 @@ const TimelineDetail = () => {
                         >
                           <option value="pending">Pending</option>
                           <option value="in_progress">In Progress</option>
-                          <option value="review">Review</option>
                           <option value="completed">Completed</option>
                         </select>
                         <button onClick={(e) => openEditModal(e, req)} className="text-gray-400 hover:text-blue-600"><Edit2 size={12} /></button>
@@ -293,7 +291,6 @@ const TimelineDetail = () => {
               >
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
-                <option value="review">Review</option>
                 <option value="completed">Completed</option>
                 <option value="overdue">Overdue</option>
               </select>
