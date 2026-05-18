@@ -8,7 +8,7 @@ import Modal from '../../components/common/Modal';
 const TimelineDetail = () => {
   const { tid } = useParams();
   const queryClient = useQueryClient();
-  const [view, setView] = useState('kanban'); // Default to kanban for MS Planner feel
+  const [view, setView] = useState('list'); // Default to list view
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState(null);
   const [formData, setFormData] = useState({
