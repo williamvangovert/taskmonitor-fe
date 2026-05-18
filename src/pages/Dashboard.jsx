@@ -41,6 +41,14 @@ const Dashboard = () => {
     }
   });
 
+  const { data: projects } = useQuery({
+    queryKey: ['dashboard-projects'],
+    queryFn: async () => {
+      const { data } = await axios.get('/projects');
+      return data;
+    }
+  });
+
   const { data: criticalTasks, isLoading: isLoadingCritical } = useQuery({
     queryKey: ['dashboard-critical'],
     queryFn: async () => {
@@ -186,45 +194,33 @@ const Dashboard = () => {
           </button>
         </div>
         <div className="space-y-6">
-          {/* Placeholder for project progress bars as per design */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-gray-800">Project Alpha — E-Commerce Platform</span>
-              <div className="flex items-center space-x-3">
-                <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px]">In Progress</span>
-                <span>82%</span>
+          {projects?.slice(0, 4).map((project) => (
+            <div key={project.id} className="space-y-2">
+              <div className="flex justify-between text-sm font-semibold">
+                <span className="text-gray-800">{project.title}</span>
+                <div className="flex items-center space-x-3">
+                  <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                    project.status === 'completed' ? 'bg-green-50 text-green-700' :
+                    project.status === 'in_progress' ? 'bg-blue-50 text-blue-700' :
+                    project.status === 'overdue' ? 'bg-red-50 text-red-700' :
+                    'bg-gray-50 text-gray-700'
+                  }`}>
+                    {project.status?.replace('_', ' ')}
+                  </span>
+                  <span>{project.progress_percentage || 0}%</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full ${project.status === 'overdue' ? 'bg-red-500' : 'bg-green-600'}`} 
+                  style={{ width: `${project.progress_percentage || 0}%` }}
+                ></div>
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-green-600 h-2 rounded-full" style={{ width: '82%' }}></div>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-gray-800">Project Beta — CRM Redesign</span>
-              <div className="flex items-center space-x-3">
-                <span className="bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded text-[10px]">In Progress</span>
-                <span>57%</span>
-              </div>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-orange-500 h-2 rounded-full" style={{ width: '57%' }}></div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-gray-800">Project Gamma — Mobile App v3</span>
-              <div className="flex items-center space-x-3">
-                <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px]">Overdue</span>
-                <span>34%</span>
-              </div>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-red-500 h-2 rounded-full" style={{ width: '34%' }}></div>
-            </div>
-          </div>
+          ))}
+          {(!projects || projects.length === 0) && (
+            <div className="text-sm text-gray-500 text-center py-4">Belum ada project</div>
+          )}
         </div>
       </div>
 

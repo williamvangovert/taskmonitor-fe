@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProject } from '../../api/projects';
-import { createTimeline } from '../../api/timelines';
-import { ArrowLeft, Plus, ChevronRight } from 'lucide-react';
+import { createTimeline, updateTimeline, deleteTimeline } from '../../api/timelines';
+import { ArrowLeft, Plus, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 const ProjectDetail = () => {
@@ -11,12 +11,14 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTimeline, setEditingTimeline] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     start_date: '',
     end_date: '',
-    priority: 'sedang'
+    priority: 'sedang',
+    status: 'pending'
   });
   
   const { data: project, isLoading } = useQuery({
@@ -25,19 +27,53 @@ const ProjectDetail = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data) => createTimeline(id, data),
+    mutationFn: (data) => editingTimeline ? updateTimeline(id, editingTimeline.id, data) : createTimeline(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
-      setIsModalOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        start_date: '',
-        end_date: '',
-        priority: 'sedang'
-      });
+      closeModal();
     }
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (timelineId) => deleteTimeline(id, timelineId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+    }
+  });
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTimeline(null);
+    setFormData({
+      title: '',
+      description: '',
+      start_date: '',
+      end_date: '',
+      priority: 'sedang',
+      status: 'pending'
+    });
+  };
+
+  const openEditModal = (e, timeline) => {
+    e.stopPropagation();
+    setEditingTimeline(timeline);
+    setFormData({
+      title: timeline.title,
+      description: timeline.description || '',
+      start_date: timeline.start_date ? new Date(timeline.start_date).toISOString().split('T')[0] : '',
+      end_date: timeline.end_date ? new Date(timeline.end_date).toISOString().split('T')[0] : '',
+      priority: timeline.priority,
+      status: timeline.status || 'pending'
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (e, timelineId) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this timeline?')) {
+      deleteMutation.mutate(timelineId);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -125,12 +161,27 @@ const ProjectDetail = () => {
                     {timeline.duration_days} hari
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                    timeline.status === 'overdue' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
-                  }`}>
-                    {timeline.status?.replace('_', ' ')}
-                  </span>
+                  <div className="flex items-center space-x-2 mb-2 justify-end">
+                    <button 
+                      onClick={(e) => openEditModal(e, timeline)}
+                      className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDelete(e, timeline.id)}
+                      className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                      timeline.status === 'overdue' ? 'bg-red-50 text-red-600' : 
+                      timeline.status === 'completed' ? 'bg-green-50 text-green-600' :
+                      'bg-blue-50 text-blue-600'
+                    }`}>
+                      {timeline.status?.replace('_', ' ')}
+                    </span>
+                  </div>
                   <div className="text-xs font-bold text-gray-600 mt-2">{timeline.progress_percentage}%</div>
                   <div className="text-[10px] text-gray-400">{timeline.requirements_count || 0} reqs</div>
                 </div>
@@ -147,11 +198,10 @@ const ProjectDetail = () => {
           ))}
         </div>
       </div>
-      {/* Timeline Creation Modal */}
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Add New Timeline"
+        onClose={closeModal} 
+        title={editingTimeline ? "Edit Timeline" : "Add New Timeline"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -200,12 +250,27 @@ const ProjectDetail = () => {
               <option value="mendesak">Mendesak</option>
             </select>
           </div>
+          {editingTimeline && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
+              <select 
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.status}
+                onChange={(e) => setFormData({...formData, status: e.target.value})}
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+          )}
           <button 
             type="submit"
             disabled={mutation.isPending}
-            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400 mt-4"
           >
-            {mutation.isPending ? 'Adding...' : 'Add Timeline'}
+            {mutation.isPending ? 'Saving...' : (editingTimeline ? 'Update Timeline' : 'Add Timeline')}
           </button>
         </form>
       </Modal>

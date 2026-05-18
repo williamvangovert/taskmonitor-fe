@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRequirements, createRequirement } from '../../api/requirements';
-import { List, LayoutGrid, Clock, Plus } from 'lucide-react';
+import { getRequirements, createRequirement, updateRequirement, deleteRequirement } from '../../api/requirements';
+import { List, LayoutGrid, Clock, Plus, Edit2, Trash2, CheckCircle, MoreVertical } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 const TimelineDetail = () => {
@@ -10,11 +10,13 @@ const TimelineDetail = () => {
   const queryClient = useQueryClient();
   const [view, setView] = useState('kanban'); // Default to kanban for MS Planner feel
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRequirement, setEditingRequirement] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     due_date: '',
-    priority: 'sedang'
+    priority: 'sedang',
+    status: 'pending'
   });
   
   const { data: requirements, isLoading, error } = useQuery({
@@ -23,18 +25,63 @@ const TimelineDetail = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data) => createRequirement(tid, data),
+    mutationFn: (data) => editingRequirement ? updateRequirement(tid, editingRequirement.id, data) : createRequirement(tid, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
-      setIsModalOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        due_date: '',
-        priority: 'sedang'
-      });
+      closeModal();
     }
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (reqId) => deleteRequirement(tid, reqId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+    }
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ reqId, status }) => updateRequirement(tid, reqId, { status, is_completed: status === 'completed' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+    }
+  });
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingRequirement(null);
+    setFormData({
+      title: '',
+      description: '',
+      due_date: '',
+      priority: 'sedang',
+      status: 'pending'
+    });
+  };
+
+  const openEditModal = (e, req) => {
+    e.stopPropagation();
+    setEditingRequirement(req);
+    setFormData({
+      title: req.title,
+      description: req.description || '',
+      due_date: req.due_date ? new Date(req.due_date).toISOString().split('T')[0] : '',
+      priority: req.priority,
+      status: req.status || 'pending'
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (e, reqId) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this requirement?')) {
+      deleteMutation.mutate(reqId);
+    }
+  };
+
+  const handleStatusChange = (e, reqId, newStatus) => {
+    e.stopPropagation();
+    statusMutation.mutate({ reqId, status: newStatus });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -97,20 +144,48 @@ const TimelineDetail = () => {
                 <th className="px-6 py-4">Deadline</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Priority</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {requirements?.map(req => (
-                <tr key={req.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-semibold text-gray-700 text-sm">{req.title}</td>
+                <tr key={req.id} className={`hover:bg-gray-50 ${req.status === 'completed' ? 'opacity-70' : ''}`}>
+                  <td className={`px-6 py-4 font-semibold text-sm ${req.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                    {req.title}
+                  </td>
                   <td className="px-6 py-4 text-xs text-gray-500">{new Date(req.due_date).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">{req.status}</span>
+                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">{req.status?.replace('_', ' ')}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getPriorityBadge(req.priority)}`}>
                       {req.priority}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      {req.status !== 'completed' && (
+                        <button 
+                          onClick={(e) => handleStatusChange(e, req.id, 'completed')}
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          title="Mark as Done"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
+                      <button 
+                        onClick={(e) => openEditModal(e, req)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        onClick={(e) => handleDelete(e, req.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -134,8 +209,24 @@ const TimelineDetail = () => {
                       <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${getPriorityBadge(req.priority)}`}>
                         {req.priority}
                       </span>
+                      <div className="flex items-center space-x-1">
+                        <select
+                          className="text-[10px] bg-gray-50 border-gray-200 rounded px-1 py-0.5 text-gray-600 focus:outline-none"
+                          value={req.status}
+                          onChange={(e) => handleStatusChange(e, req.id, e.target.value)}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="review">Review</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                        <button onClick={(e) => openEditModal(e, req)} className="text-gray-400 hover:text-blue-600"><Edit2 size={12} /></button>
+                        <button onClick={(e) => handleDelete(e, req.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={12} /></button>
+                      </div>
                     </div>
-                    <div className="text-sm font-bold text-gray-800 mb-4">{req.title}</div>
+                    <div className={`text-sm font-bold mb-4 ${req.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                      {req.title}
+                    </div>
                     <div className="flex justify-between items-center text-[10px]">
                       <div className="flex items-center text-gray-400">
                         <Clock size={12} className="mr-1" />
@@ -152,11 +243,10 @@ const TimelineDetail = () => {
           ))}
         </div>
       )}
-      {/* Requirement Creation Modal */}
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Add New Requirement"
+        onClose={closeModal} 
+        title={editingRequirement ? "Edit Requirement" : "Add New Requirement"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -193,12 +283,28 @@ const TimelineDetail = () => {
               <option value="mendesak">Mendesak</option>
             </select>
           </div>
+          {editingRequirement && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
+              <select 
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.status}
+                onChange={(e) => setFormData({...formData, status: e.target.value})}
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+          )}
           <button 
             type="submit"
             disabled={mutation.isPending}
-            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400 mt-4"
           >
-            {mutation.isPending ? 'Adding...' : 'Add Requirement'}
+            {mutation.isPending ? 'Saving...' : (editingRequirement ? 'Update Requirement' : 'Add Requirement')}
           </button>
         </form>
       </Modal>

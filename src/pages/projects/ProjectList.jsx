@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, createProject } from '../../api/projects';
-import { Plus } from 'lucide-react';
+import { getProjects, createProject, updateProject, deleteProject } from '../../api/projects';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 const ProjectList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,20 +25,53 @@ const ProjectList = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: createProject,
+    mutationFn: (data) => editingProject ? updateProject(editingProject.id, data) : createProject(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      setIsModalOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        start_date: '',
-        end_date: '',
-        priority: 'sedang',
-        status: 'pending'
-      });
+      closeModal();
     }
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    }
+  });
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
+    setFormData({
+      title: '',
+      description: '',
+      start_date: '',
+      end_date: '',
+      priority: 'sedang',
+      status: 'pending'
+    });
+  };
+
+  const openEditModal = (e, project) => {
+    e.stopPropagation();
+    setEditingProject(project);
+    setFormData({
+      title: project.title,
+      description: project.description || '',
+      start_date: project.start_date ? new Date(project.start_date).toISOString().split('T')[0] : '',
+      end_date: project.end_date ? new Date(project.end_date).toISOString().split('T')[0] : '',
+      priority: project.priority,
+      status: project.status
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -96,6 +130,7 @@ const ProjectList = () => {
               <th className="px-6 py-4">Progress</th>
               <th className="px-6 py-4">Periode</th>
               <th className="px-6 py-4">PIC</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -144,6 +179,22 @@ const ProjectList = () => {
                     {project.creator?.name?.split(' ').map(n => n[0]).join('') || '??'}
                   </div>
                 </td>
+                <td className="px-6 py-5 text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <button 
+                      onClick={(e) => openEditModal(e, project)}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDelete(e, project.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -154,8 +205,8 @@ const ProjectList = () => {
       </div>
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Create New Project"
+        onClose={closeModal} 
+        title={editingProject ? "Edit Project" : "Create New Project"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -204,12 +255,27 @@ const ProjectList = () => {
               <option value="mendesak">Mendesak</option>
             </select>
           </div>
+          {editingProject && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
+              <select 
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                value={formData.status}
+                onChange={(e) => setFormData({...formData, status: e.target.value})}
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+          )}
           <button 
             type="submit"
             disabled={mutation.isPending}
-            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400"
+            className="w-full bg-primary-600 text-white py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors disabled:bg-gray-400 mt-4"
           >
-            {mutation.isPending ? 'Creating...' : 'Create Project'}
+            {mutation.isPending ? 'Saving...' : (editingProject ? 'Update Project' : 'Create Project')}
           </button>
         </form>
       </Modal>
