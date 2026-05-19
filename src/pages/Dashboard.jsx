@@ -177,7 +177,7 @@ const Dashboard = () => {
                 <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${
                   task.days_until <= 1 ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
                 }`}>
-                  {task.days_until <= 1 ? 'Besok' : `${task.days_until} hari`}
+                  {task.days_until === 0 ? 'Hari ini' : task.days_until === 1 ? 'Besok' : `H-${task.days_until}`}
                 </span>
               </div>
             ))}
