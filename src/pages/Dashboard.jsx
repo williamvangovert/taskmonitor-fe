@@ -60,6 +60,7 @@ const Dashboard = () => {
   });
 
   const [isCriticalModalOpen, setIsCriticalModalOpen] = React.useState(false);
+  const [isUpcomingModalOpen, setIsUpcomingModalOpen] = React.useState(false);
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Memuat data...</div>;
 
@@ -89,13 +90,16 @@ const Dashboard = () => {
           icon={AlertTriangle} 
           color="red"
         />
-        <StatCard 
-          title="Deadline 7 hari" 
-          value={stats?.upcoming_deadlines || 0} 
-          subValue="Upcoming" 
-          icon={Clock} 
-          color="orange"
-        />
+        <div onClick={() => setIsUpcomingModalOpen(true)} className="cursor-pointer group">
+          <StatCard 
+            title="Deadline 7 hari" 
+            value={stats?.upcoming_deadlines || 0} 
+            subValue="Upcoming" 
+            icon={Clock} 
+            color="orange"
+            className="group-hover:shadow-md transition-shadow ring-2 ring-orange-500/20"
+          />
+        </div>
         <div onClick={() => setIsCriticalModalOpen(true)} className="cursor-pointer group">
           <StatCard 
             title="Deadline 2 Hari" 
@@ -264,6 +268,50 @@ const Dashboard = () => {
         </div>
         <button 
           onClick={() => setIsCriticalModalOpen(false)}
+          className="w-full mt-6 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors"
+        >
+          Tutup
+        </button>
+      </Modal>
+
+      {/* Upcoming Deadlines Modal */}
+      <Modal
+        isOpen={isUpcomingModalOpen}
+        onClose={() => setIsUpcomingModalOpen(false)}
+        title="Upcoming Deadlines (7 Hari)"
+      >
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {isLoading ? (
+            <div className="text-center py-4">Memuat data...</div>
+          ) : upcomingTasks?.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 italic">Tidak ada deadline dalam 7 hari ke depan. ✨</div>
+          ) : (
+            upcomingTasks?.map((task) => (
+              <div 
+                key={task.id} 
+                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                className="p-4 bg-orange-50 rounded-xl border border-orange-100 flex justify-between items-center cursor-pointer hover:bg-orange-100 transition-colors"
+              >
+                <div>
+                  <div className="font-bold text-orange-900">{task.title}</div>
+                  <div className="text-xs text-orange-600 mt-1">
+                    Due: {new Date(task.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                  <div className="text-[10px] text-orange-400 font-medium uppercase mt-1">
+                    {task.timeline?.project?.title} — {task.timeline?.title}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                    {task.days_until === 0 ? 'Hari ini' : task.days_until === 1 ? 'Besok' : `H-${task.days_until}`}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <button 
+          onClick={() => setIsUpcomingModalOpen(false)}
           className="w-full mt-6 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors"
         >
           Tutup
