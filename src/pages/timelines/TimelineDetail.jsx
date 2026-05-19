@@ -30,6 +30,8 @@ const TimelineDetail = () => {
     mutationFn: (data) => editingRequirement ? updateRequirement(tid, editingRequirement.id, data) : createRequirement(tid, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project'] }); // Invalidate all project details just in case
       closeModal();
     }
   });
@@ -38,6 +40,8 @@ const TimelineDetail = () => {
     mutationFn: (reqId) => deleteRequirement(tid, reqId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project'] });
     }
   });
 
@@ -45,6 +49,8 @@ const TimelineDetail = () => {
     mutationFn: ({ reqId, status }) => updateRequirement(tid, reqId, { status, is_completed: status === 'completed' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project'] });
     }
   });
 
