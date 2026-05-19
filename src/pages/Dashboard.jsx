@@ -241,7 +241,7 @@ const Dashboard = () => {
             criticalTasks?.map((task) => (
               <div 
                 key={task.id} 
-                onClick={() => navigate(`/projects/${task.timeline?.project_id}/timelines/${task.timeline_id}`)}
+                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
                 className="p-4 bg-red-50 rounded-xl border border-red-100 flex justify-between items-center cursor-pointer hover:bg-red-100 transition-colors"
               >
                 <div>
