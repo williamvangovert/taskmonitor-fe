@@ -171,7 +171,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
                     <div>
                       <div className="font-bold text-sm text-gray-800">{timeline.title}</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">
-                        {new Date(timeline.start_date).toLocaleDateString('id-ID')} - {new Date(timeline.end_date).toLocaleDateString('id-ID')}
+                        {new Date(timeline.start_date).toLocaleDateString('id-ID')} - {new Date(timeline.end_date).toLocaleDateString('id-ID')} · {timeline.requirements?.length || 0} reqs
                       </div>
                     </div>
                   </div>
