@@ -30,6 +30,8 @@ const ExpandedProjectDetails = ({ projectId }) => {
   const [reqFormData, setReqFormData] = useState({
     title: '',
     description: '',
+    start_date: '',
+    end_date: '',
     due_date: '',
     status: 'pending',
     priority: 'sedang'
@@ -81,7 +83,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
     setIsReqModalOpen(false);
     setEditingReq(null);
     setActiveTimelineId(null);
-    setReqFormData({ title: '', description: '', due_date: '', status: 'pending', priority: 'sedang' });
+    setReqFormData({ title: '', description: '', start_date: '', end_date: '', due_date: '', status: 'pending', priority: 'sedang' });
   };
 
   const openEditTimeline = (e, timeline) => {
@@ -104,6 +106,8 @@ const ExpandedProjectDetails = ({ projectId }) => {
     setReqFormData({
       title: req.title,
       description: req.description || '',
+      start_date: req.start_date ? new Date(req.start_date).toISOString().split('T')[0] : '',
+      end_date: req.end_date ? new Date(req.end_date).toISOString().split('T')[0] : '',
       due_date: req.due_date ? new Date(req.due_date).toISOString().split('T')[0] : '',
       status: req.status,
       priority: req.priority || 'sedang'
@@ -224,10 +228,16 @@ const ExpandedProjectDetails = ({ projectId }) => {
                             <div>
                               <div className="text-sm font-semibold text-gray-800">{req.title}</div>
                               <div className="flex items-center space-x-2 mt-1">
-                                {req.status === 'completed' ? (
-                                  <span className="text-[10px] flex items-center text-green-600 font-medium"><CheckCircle size={10} className="mr-1" /> Selesai</span>
-                                ) : (
-                                  <span className="text-[10px] flex items-center text-orange-500 font-medium"><Clock size={10} className="mr-1" /> Due: {new Date(req.due_date).toLocaleDateString('id-ID')}</span>
+                                <span className="text-[10px] flex items-center text-gray-500 font-medium">
+                                  <Clock size={10} className="mr-1" />
+                                  {req.start_date && req.end_date ? (
+                                    `${new Date(req.start_date).toLocaleDateString('id-ID')} - ${new Date(req.end_date).toLocaleDateString('id-ID')}`
+                                  ) : (
+                                    `Due: ${new Date(req.due_date).toLocaleDateString('id-ID')}`
+                                  )}
+                                </span>
+                                {req.status === 'completed' && (
+                                  <span className="text-[10px] flex items-center text-green-600 font-medium ml-2"><CheckCircle size={10} className="mr-1" /> Selesai</span>
                                 )}
                               </div>
                             </div>
@@ -296,6 +306,16 @@ const ExpandedProjectDetails = ({ projectId }) => {
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
             <input type="text" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.title} onChange={(e) => setReqFormData({...reqFormData, title: e.target.value})} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+              <input type="date" className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.start_date} onChange={(e) => setReqFormData({...reqFormData, start_date: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">End Date</label>
+              <input type="date" className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.end_date} onChange={(e) => setReqFormData({...reqFormData, end_date: e.target.value})} />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Due Date</label>
