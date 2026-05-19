@@ -1,7 +1,7 @@
 import axios from './axios';
 
-export const getProjects = async (page = 1) => {
-  const { data } = await axios.get(`/projects?page=${page}`);
+export const getProjects = async (page = 1, status = 'all') => {
+  const { data } = await axios.get(`/projects?page=${page}&status=${status}`);
   return data; // sekarang return { data: [...], current_page, last_page, total }
 };
 

@@ -9,6 +9,7 @@ const ProjectList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [formData, setFormData] = useState({
@@ -21,9 +22,14 @@ const ProjectList = () => {
   });
 
   const { data: projectsData, isLoading } = useQuery({
-    queryKey: ['projects', currentPage],
-    queryFn: () => getProjects(currentPage)
+    queryKey: ['projects', currentPage, filterStatus],
+    queryFn: () => getProjects(currentPage, filterStatus)
   });
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    setCurrentPage(1);
+  };
 
   const projects = projectsData?.data;
   const lastPage = projectsData?.last_page || 1;
@@ -120,12 +126,38 @@ const ProjectList = () => {
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-50 flex space-x-2">
-          <button className="px-4 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
-            Semua ({total})
+          <button 
+            onClick={() => handleFilterChange('all')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filterStatus === 'all' ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            Semua
           </button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-50 rounded-full text-sm font-medium">In Progress</button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-50 rounded-full text-sm font-medium">Completed</button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-50 rounded-full text-sm font-medium">Overdue</button>
+          <button 
+            onClick={() => handleFilterChange('in_progress')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filterStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            In Progress
+          </button>
+          <button 
+            onClick={() => handleFilterChange('completed')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filterStatus === 'completed' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            Completed
+          </button>
+          <button 
+            onClick={() => handleFilterChange('overdue')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filterStatus === 'overdue' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            Overdue
+          </button>
         </div>
 
         <table className="w-full text-left">
