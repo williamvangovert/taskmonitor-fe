@@ -3,12 +3,7 @@ import { UserPlus, Check, ShieldCheck } from 'lucide-react';
 
 const Settings = () => {
   // Mock data for display based on your design
-  const users = [
-    { name: 'Budi Santoso', dept: 'Engineering', role: 'Manager', color: 'bg-blue-100 text-blue-700' },
-    { name: 'Rina Kartika', dept: 'Engineering', role: 'Staff', color: 'bg-primary-100 text-primary-700' },
-    { name: 'Dani Pratama', dept: 'Frontend', role: 'Staff', color: 'bg-indigo-100 text-indigo-700' },
-    { name: 'Hendra Tan', dept: 'DevOps', role: 'Manager', color: 'bg-blue-100 text-blue-700' },
-  ];
+  const users = [];
 
   const schedulers = [
     { name: 'H-7 Reminder', status: 'Aktif' },
@@ -26,22 +21,28 @@ const Settings = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-sm font-bold text-gray-800 mb-6 uppercase tracking-wider">User Management</h2>
           <div className="space-y-6 mb-8">
-            {users.map((user, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${user.color}`}>
-                    {user.name.split(' ').map(n => n[0]).join('')}
+            {users.length > 0 ? (
+              users.map((user, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${user.color}`}>
+                      {user.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-800">{user.name}</div>
+                      <div className="text-[10px] text-gray-400 font-medium">{user.dept}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-800">{user.name}</div>
-                    <div className="text-[10px] text-gray-400 font-medium">{user.dept}</div>
-                  </div>
+                  <span className="px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full text-[10px] font-bold">
+                    {user.role}
+                  </span>
                 </div>
-                <span className="px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full text-[10px] font-bold">
-                  {user.role}
-                </span>
+              ))
+            ) : (
+              <div className="text-center text-sm text-gray-400 italic py-8">
+                Belum ada user
               </div>
-            ))}
+            )}
           </div>
           <button className="w-full flex items-center justify-center space-x-2 border border-gray-200 py-3 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
             <UserPlus size={18} />

@@ -39,7 +39,7 @@ const Login = () => {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Welcome Back</h2>
-            <p className="text-center text-gray-500 text-sm mb-8">Masuk ke TaskMonitor Enterprise v2.1</p>
+            <p className="text-center text-gray-500 text-sm mb-8">Masuk ke TaskMonitor HCISA</p>
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 flex items-center space-x-3 text-red-700 text-sm animate-pulse">
@@ -94,7 +94,7 @@ const Login = () => {
             </form>
           </div>
           <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
-            <p className="text-xs text-gray-400">© 2026 TaskMonitor Enterprise. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© 2026 TaskMonitor HCISA. All rights reserved.</p>
           </div>
         </div>
       </div>
