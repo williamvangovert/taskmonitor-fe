@@ -314,7 +314,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">End Date</label>
-              <input type="date" className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.end_date} onChange={(e) => setReqFormData({...reqFormData, end_date: e.target.value})} />
+              <input type="date" className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.end_date} onChange={(e) => setReqFormData({...reqFormData, end_date: e.target.value, due_date: e.target.value})} />
             </div>
           </div>
           <div>

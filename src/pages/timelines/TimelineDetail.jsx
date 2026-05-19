@@ -287,7 +287,7 @@ const TimelineDetail = () => {
                 type="date" 
                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                 value={formData.end_date}
-                onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+                onChange={(e) => setFormData({...formData, end_date: e.target.value, due_date: e.target.value})}
               />
             </div>
           </div>
