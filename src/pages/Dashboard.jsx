@@ -155,7 +155,11 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             {overdueTasks?.slice(0, 4).map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+              <div 
+                key={task.id} 
+                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+              >
                 <div className="flex items-center space-x-4">
                   <span className="text-red-600 font-bold text-sm bg-red-50 px-2 py-1 rounded">+{task.days_late}d</span>
                   <div>
@@ -175,7 +179,11 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             {upcomingTasks?.slice(0, 4).map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+              <div 
+                key={task.id} 
+                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+              >
                 <div>
                   <div className="font-semibold text-gray-800 text-sm">{task.title}</div>
                   <div className="text-xs text-gray-400">H-{task.days_until} · {task.timeline?.project?.title}</div>
