@@ -209,7 +209,11 @@ const Dashboard = () => {
         </div>
         <div className="space-y-6">
           {projects?.slice(0, 4).map((project) => (
-            <div key={project.id} className="space-y-2">
+            <div 
+              key={project.id} 
+              onClick={() => navigate(`/projects/${project.id}`)}
+              className="space-y-2 cursor-pointer hover:bg-gray-50 p-3 -mx-3 rounded-xl transition-colors"
+            >
               <div className="flex justify-between text-sm font-semibold">
                 <span className="text-gray-800">{project.title}</span>
                 <div className="flex items-center space-x-3">
