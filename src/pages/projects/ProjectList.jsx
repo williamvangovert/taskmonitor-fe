@@ -2,17 +2,120 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getProjects, createProject, updateProject, deleteProject, getProject } from '../../api/projects';
+import { createTimeline, updateTimeline, deleteTimeline } from '../../api/timelines';
+import { createRequirement, updateRequirement, deleteRequirement } from '../../api/requirements';
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Layers, FileText, Clock, CheckCircle } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 const ExpandedProjectDetails = ({ projectId }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [expandedTimelines, setExpandedTimelines] = useState(new Set());
   
+  // Timeline Modal State
+  const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
+  const [editingTimeline, setEditingTimeline] = useState(null);
+  const [timelineFormData, setTimelineFormData] = useState({
+    title: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    progress_percentage: 0
+  });
+
+  // Requirement Modal State
+  const [isReqModalOpen, setIsReqModalOpen] = useState(false);
+  const [editingReq, setEditingReq] = useState(null);
+  const [activeTimelineId, setActiveTimelineId] = useState(null);
+  const [reqFormData, setReqFormData] = useState({
+    title: '',
+    description: '',
+    due_date: '',
+    status: 'pending',
+    priority: 'sedang'
+  });
+
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', projectId],
     queryFn: () => getProject(projectId)
   });
+
+  // Mutations
+  const timelineMutation = useMutation({
+    mutationFn: (data) => editingTimeline ? updateTimeline(projectId, editingTimeline.id, data) : createTimeline(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      closeTimelineModal();
+    }
+  });
+
+  const deleteTimelineMutation = useMutation({
+    mutationFn: (timelineId) => deleteTimeline(projectId, timelineId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+    }
+  });
+
+  const reqMutation = useMutation({
+    mutationFn: (data) => editingReq ? updateRequirement(activeTimelineId, editingReq.id, data) : createRequirement(activeTimelineId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      closeReqModal();
+    }
+  });
+
+  const deleteReqMutation = useMutation({
+    mutationFn: ({timelineId, reqId}) => deleteRequirement(timelineId, reqId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+    }
+  });
+
+  const closeTimelineModal = () => {
+    setIsTimelineModalOpen(false);
+    setEditingTimeline(null);
+    setTimelineFormData({ title: '', description: '', start_date: '', end_date: '', progress_percentage: 0 });
+  };
+
+  const closeReqModal = () => {
+    setIsReqModalOpen(false);
+    setEditingReq(null);
+    setActiveTimelineId(null);
+    setReqFormData({ title: '', description: '', due_date: '', status: 'pending', priority: 'sedang' });
+  };
+
+  const openEditTimeline = (e, timeline) => {
+    e.stopPropagation();
+    setEditingTimeline(timeline);
+    setTimelineFormData({
+      title: timeline.title,
+      description: timeline.description || '',
+      start_date: timeline.start_date ? new Date(timeline.start_date).toISOString().split('T')[0] : '',
+      end_date: timeline.end_date ? new Date(timeline.end_date).toISOString().split('T')[0] : '',
+      progress_percentage: timeline.progress_percentage || 0
+    });
+    setIsTimelineModalOpen(true);
+  };
+
+  const openEditReq = (e, timelineId, req) => {
+    e.stopPropagation();
+    setEditingReq(req);
+    setActiveTimelineId(timelineId);
+    setReqFormData({
+      title: req.title,
+      description: req.description || '',
+      due_date: req.due_date ? new Date(req.due_date).toISOString().split('T')[0] : '',
+      status: req.status,
+      priority: req.priority || 'sedang'
+    });
+    setIsReqModalOpen(true);
+  };
+
+  const openCreateReq = (e, timelineId) => {
+    e.stopPropagation();
+    setActiveTimelineId(timelineId);
+    setIsReqModalOpen(true);
+  };
 
   if (isLoading) return <div className="p-6 text-center text-gray-500 text-sm">Memuat detail project...</div>;
   if (!project) return null;
@@ -29,9 +132,18 @@ const ExpandedProjectDetails = ({ projectId }) => {
 
   return (
     <div className="bg-gray-50 p-6 border-b border-gray-100">
-      <div className="flex items-center space-x-2 mb-4 text-gray-800 font-bold">
-        <Layers size={18} className="text-primary-600" />
-        <h3 className="text-sm">Timelines ({project.timelines?.length || 0})</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2 text-gray-800 font-bold">
+          <Layers size={18} className="text-primary-600" />
+          <h3 className="text-sm">Timelines ({project.timelines?.length || 0})</h3>
+        </div>
+        <button
+          onClick={() => setIsTimelineModalOpen(true)}
+          className="flex items-center space-x-1 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          <Plus size={14} />
+          <span>New Timeline</span>
+        </button>
       </div>
       
       {project.timelines?.length === 0 ? (
@@ -64,14 +176,40 @@ const ExpandedProjectDetails = ({ projectId }) => {
                         <div className="h-full bg-primary-500 rounded-full" style={{ width: `${timeline.progress_percentage}%` }}></div>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={(e) => openEditTimeline(e, timeline)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Hapus timeline ini?')) deleteTimelineMutation.mutate(timeline.id);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Requirements Dropdown */}
                 {isExpanded && (
                   <div className="bg-gray-50 border-t border-gray-100 p-4">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center">
-                      <FileText size={12} className="mr-1" /> Requirements
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center">
+                        <FileText size={12} className="mr-1" /> Requirements
+                      </div>
+                      <button
+                        onClick={(e) => openCreateReq(e, timeline.id)}
+                        className="flex items-center space-x-1 bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        <Plus size={10} />
+                        <span>Add Req</span>
+                      </button>
                     </div>
                     {timeline.requirements?.length === 0 ? (
                       <div className="text-xs text-gray-400 italic">Tidak ada requirement.</div>
@@ -93,13 +231,32 @@ const ExpandedProjectDetails = ({ projectId }) => {
                                 )}
                               </div>
                             </div>
-                            <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold ${
-                              req.status === 'completed' ? 'bg-green-50 text-green-700' :
-                              req.status === 'in_progress' ? 'bg-blue-50 text-blue-700' :
-                              'bg-gray-100 text-gray-600'
-                            }`}>
-                              {req.status?.replace('_', ' ')}
-                            </span>
+                            <div className="flex items-center space-x-3">
+                              <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold ${
+                                req.status === 'completed' ? 'bg-green-50 text-green-700' :
+                                req.status === 'in_progress' ? 'bg-blue-50 text-blue-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {req.status?.replace('_', ' ')}
+                              </span>
+                              <div className="flex items-center space-x-1">
+                                <button
+                                  onClick={(e) => openEditReq(e, timeline.id, req)}
+                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm('Hapus requirement ini?')) deleteReqMutation.mutate({timelineId: timeline.id, reqId: req.id});
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -111,6 +268,50 @@ const ExpandedProjectDetails = ({ projectId }) => {
           })}
         </div>
       )}
+
+      {/* Timeline Modal */}
+      <Modal isOpen={isTimelineModalOpen} onClose={closeTimelineModal} title={editingTimeline ? "Edit Timeline" : "Create Timeline"}>
+        <form onSubmit={(e) => { e.preventDefault(); timelineMutation.mutate(timelineFormData); }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
+            <input type="text" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={timelineFormData.title} onChange={(e) => setTimelineFormData({...timelineFormData, title: e.target.value})} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+              <input type="date" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={timelineFormData.start_date} onChange={(e) => setTimelineFormData({...timelineFormData, start_date: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">End Date</label>
+              <input type="date" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={timelineFormData.end_date} onChange={(e) => setTimelineFormData({...timelineFormData, end_date: e.target.value})} />
+            </div>
+          </div>
+          <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold">{timelineMutation.isPending ? 'Saving...' : 'Save'}</button>
+        </form>
+      </Modal>
+
+      {/* Requirement Modal */}
+      <Modal isOpen={isReqModalOpen} onClose={closeReqModal} title={editingReq ? "Edit Requirement" : "Create Requirement"}>
+        <form onSubmit={(e) => { e.preventDefault(); reqMutation.mutate(reqFormData); }} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
+            <input type="text" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.title} onChange={(e) => setReqFormData({...reqFormData, title: e.target.value})} />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Due Date</label>
+            <input type="date" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.due_date} onChange={(e) => setReqFormData({...reqFormData, due_date: e.target.value})} />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
+            <select className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.status} onChange={(e) => setReqFormData({...reqFormData, status: e.target.value})}>
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold">{reqMutation.isPending ? 'Saving...' : 'Save'}</button>
+        </form>
+      </Modal>
     </div>
   );
 };
