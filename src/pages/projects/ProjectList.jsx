@@ -1,9 +1,119 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, createProject, updateProject, deleteProject } from '../../api/projects';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { getProjects, createProject, updateProject, deleteProject, getProject } from '../../api/projects';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Layers, FileText, Clock, CheckCircle } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+
+const ExpandedProjectDetails = ({ projectId }) => {
+  const navigate = useNavigate();
+  const [expandedTimelines, setExpandedTimelines] = useState(new Set());
+  
+  const { data: project, isLoading } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => getProject(projectId)
+  });
+
+  if (isLoading) return <div className="p-6 text-center text-gray-500 text-sm">Memuat detail project...</div>;
+  if (!project) return null;
+
+  const toggleTimeline = (e, timelineId) => {
+    e.stopPropagation();
+    setExpandedTimelines(prev => {
+      const next = new Set(prev);
+      if (next.has(timelineId)) next.delete(timelineId);
+      else next.add(timelineId);
+      return next;
+    });
+  };
+
+  return (
+    <div className="bg-gray-50 p-6 border-b border-gray-100">
+      <div className="flex items-center space-x-2 mb-4 text-gray-800 font-bold">
+        <Layers size={18} className="text-primary-600" />
+        <h3 className="text-sm">Timelines ({project.timelines?.length || 0})</h3>
+      </div>
+      
+      {project.timelines?.length === 0 ? (
+        <div className="text-xs text-gray-500 italic">Belum ada timeline di project ini.</div>
+      ) : (
+        <div className="space-y-3">
+          {project.timelines?.map(timeline => {
+            const isExpanded = expandedTimelines.has(timeline.id);
+            return (
+              <div key={timeline.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                <div 
+                  onClick={(e) => toggleTimeline(e, timeline.id)}
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-1.5 rounded-md ${isExpanded ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-400'}`}>
+                      <ChevronRight size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-gray-800">{timeline.title}</div>
+                      <div className="text-[10px] text-gray-400 mt-0.5">
+                        {new Date(timeline.start_date).toLocaleDateString('id-ID')} - {new Date(timeline.end_date).toLocaleDateString('id-ID')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-gray-700">{timeline.progress_percentage}%</div>
+                      <div className="w-20 h-1.5 bg-gray-100 rounded-full mt-1">
+                        <div className="h-full bg-primary-500 rounded-full" style={{ width: `${timeline.progress_percentage}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Requirements Dropdown */}
+                {isExpanded && (
+                  <div className="bg-gray-50 border-t border-gray-100 p-4">
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center">
+                      <FileText size={12} className="mr-1" /> Requirements
+                    </div>
+                    {timeline.requirements?.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">Tidak ada requirement.</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {timeline.requirements?.map(req => (
+                          <div 
+                            key={req.id} 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/timelines/${timeline.id}`); }}
+                            className="bg-white p-3 rounded-md border border-gray-200 flex justify-between items-center cursor-pointer hover:border-primary-300 transition-colors"
+                          >
+                            <div>
+                              <div className="text-sm font-semibold text-gray-800">{req.title}</div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                {req.status === 'completed' ? (
+                                  <span className="text-[10px] flex items-center text-green-600 font-medium"><CheckCircle size={10} className="mr-1" /> Selesai</span>
+                                ) : (
+                                  <span className="text-[10px] flex items-center text-orange-500 font-medium"><Clock size={10} className="mr-1" /> Due: {new Date(req.due_date).toLocaleDateString('id-ID')}</span>
+                                )}
+                              </div>
+                            </div>
+                            <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold ${
+                              req.status === 'completed' ? 'bg-green-50 text-green-700' :
+                              req.status === 'in_progress' ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {req.status?.replace('_', ' ')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -12,6 +122,7 @@ const ProjectList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [expandedProjects, setExpandedProjects] = useState(new Set());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,6 +140,16 @@ const ProjectList = () => {
   const handleFilterChange = (status) => {
     setFilterStatus(status);
     setCurrentPage(1);
+  };
+
+  const toggleExpandProject = (e, projectId) => {
+    e.stopPropagation();
+    setExpandedProjects(prev => {
+      const next = new Set(prev);
+      if (next.has(projectId)) next.delete(projectId);
+      else next.add(projectId);
+      return next;
+    });
   };
 
   const projects = projectsData?.data;
@@ -125,6 +246,13 @@ const ProjectList = () => {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Keterangan A/B Testing */}
+        <div className="bg-blue-50 border-b border-blue-100 p-3 px-4 text-xs text-blue-800 flex items-center justify-center font-medium space-x-2">
+          <span>🔵 <b>Mode A</b>: Navigasi per halaman</span>
+          <span className="text-gray-300">|</span>
+          <span className="text-green-700">🟢 <b>Mode B</b>: Expand di tempat</span>
+        </div>
+
         <div className="p-4 border-b border-gray-50 flex space-x-2">
           <button 
             onClick={() => handleFilterChange('all')}
@@ -173,69 +301,102 @@ const ProjectList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {projects?.map((project) => (
-              <tr
-                key={project.id}
-                onClick={() => navigate(`/projects/${project.id}`)}
-                className="hover:bg-gray-50 cursor-pointer transition-colors"
-              >
-                <td className="px-6 py-5">
-                  <div className="font-bold text-gray-800 text-sm">{project.title}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">
-                    {project.timelines_count || 0} timelines · {project.requirements_count || 0} reqs
-                  </div>
-                </td>
-                <td className="px-6 py-5">
-                  <div className="flex items-center space-x-2">
-                    <span className={`w-2 h-2 rounded-full ${getPriorityColor(project.priority)}`}></span>
-                    <span className="text-xs font-semibold capitalize">{project.priority}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-5">
-                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusStyle(project.status)}`}>
-                    {project.status?.replace('_', ' ')}
-                  </span>
-                </td>
-                <td className="px-6 py-5">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-1 bg-gray-100 rounded-full h-1.5 w-24">
-                      <div
-                        className={`h-1.5 rounded-full ${project.status === 'overdue' ? 'bg-red-500' : 'bg-green-600'}`}
-                        style={{ width: `${project.progress_percentage}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-bold text-gray-600">{project.progress_percentage}%</span>
-                  </div>
-                </td>
-                <td className="px-6 py-5">
-                  <div className="text-xs text-gray-600 font-medium">
-                    {new Date(project.start_date).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })} -
-                    {new Date(project.end_date).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })}
-                  </div>
-                </td>
-                <td className="px-6 py-5">
-                  <div className="w-7 h-7 bg-blue-100 text-blue-700 flex items-center justify-center rounded-full text-[10px] font-bold">
-                    {project.creator?.name?.split(' ').map(n => n[0]).join('') || '??'}
-                  </div>
-                </td>
-                <td className="px-6 py-5 text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={(e) => openEditModal(e, project)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => handleDelete(e, project.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {projects?.map((project, index) => {
+              const mode = index % 2 === 0 ? 'A' : 'B';
+              const isExpanded = expandedProjects.has(project.id);
+              
+              return (
+                <React.Fragment key={project.id}>
+                  <tr
+                    onClick={(e) => {
+                      if (mode === 'A') {
+                        navigate(`/projects/${project.id}`);
+                      } else {
+                        toggleExpandProject(e, project.id);
+                      }
+                    }}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <td className="px-6 py-5">
+                      <div className="flex items-center space-x-2">
+                        <div className="font-bold text-gray-800 text-sm">{project.title}</div>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                          mode === 'A' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          Mode {mode}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-gray-400 mt-0.5">
+                        {project.timelines_count || 0} timelines · {project.requirements_count || 0} reqs
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center space-x-2">
+                        <span className={`w-2 h-2 rounded-full ${getPriorityColor(project.priority)}`}></span>
+                        <span className="text-xs font-semibold capitalize">{project.priority}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusStyle(project.status)}`}>
+                        {project.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-1 bg-gray-100 rounded-full h-1.5 w-24">
+                          <div
+                            className={`h-1.5 rounded-full ${project.status === 'overdue' ? 'bg-red-500' : 'bg-green-600'}`}
+                            style={{ width: `${project.progress_percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs font-bold text-gray-600">{project.progress_percentage}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="text-xs text-gray-600 font-medium">
+                        {new Date(project.start_date).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })} -
+                        {new Date(project.end_date).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="w-7 h-7 bg-blue-100 text-blue-700 flex items-center justify-center rounded-full text-[10px] font-bold">
+                        {project.creator?.name?.split(' ').map(n => n[0]).join('') || '??'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        {mode === 'B' && (
+                          <div className={`p-1 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <ChevronDown size={16} />
+                          </div>
+                        )}
+                        <button
+                          onClick={(e) => openEditModal(e, project)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(e, project.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* Expanded Row for Mode B */}
+                  {mode === 'B' && isExpanded && (
+                    <tr>
+                      <td colSpan="7" className="p-0 border-b border-gray-100 bg-gray-50/50">
+                        <ExpandedProjectDetails projectId={project.id} />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
 
