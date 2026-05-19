@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import StatCard from '../components/cards/StatCard';
@@ -17,6 +18,7 @@ import {
 import Modal from '../components/common/Modal';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
@@ -237,7 +239,11 @@ const Dashboard = () => {
             <div className="text-center py-8 text-gray-500 italic">Tidak ada deadline mendesak dalam 2 hari ke depan. ✨</div>
           ) : (
             criticalTasks?.map((task) => (
-              <div key={task.id} className="p-4 bg-red-50 rounded-xl border border-red-100 flex justify-between items-center">
+              <div 
+                key={task.id} 
+                onClick={() => navigate(`/projects/${task.timeline?.project_id}/timelines/${task.timeline_id}`)}
+                className="p-4 bg-red-50 rounded-xl border border-red-100 flex justify-between items-center cursor-pointer hover:bg-red-100 transition-colors"
+              >
                 <div>
                   <div className="font-bold text-red-900">{task.title}</div>
                   <div className="text-xs text-red-600 mt-1">
