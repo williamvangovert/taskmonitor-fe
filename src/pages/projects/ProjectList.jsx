@@ -20,6 +20,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
     description: '',
     start_date: '',
     end_date: '',
+    priority: 'sedang',
     progress_percentage: 0
   });
 
@@ -76,7 +77,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
   const closeTimelineModal = () => {
     setIsTimelineModalOpen(false);
     setEditingTimeline(null);
-    setTimelineFormData({ title: '', description: '', start_date: '', end_date: '', progress_percentage: 0 });
+    setTimelineFormData({ title: '', description: '', start_date: '', end_date: '', priority: 'sedang', progress_percentage: 0 });
   };
 
   const closeReqModal = () => {
@@ -94,6 +95,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
       description: timeline.description || '',
       start_date: timeline.start_date ? new Date(timeline.start_date).toISOString().split('T')[0] : '',
       end_date: timeline.end_date ? new Date(timeline.end_date).toISOString().split('T')[0] : '',
+      priority: timeline.priority || 'sedang',
       progress_percentage: timeline.progress_percentage || 0
     });
     setIsTimelineModalOpen(true);
@@ -296,7 +298,16 @@ const ExpandedProjectDetails = ({ projectId }) => {
               <input type="date" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={timelineFormData.end_date} onChange={(e) => setTimelineFormData({...timelineFormData, end_date: e.target.value})} />
             </div>
           </div>
-          <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold">{timelineMutation.isPending ? 'Saving...' : 'Save'}</button>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
+            <select className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" value={timelineFormData.priority} onChange={(e) => setTimelineFormData({...timelineFormData, priority: e.target.value})}>
+              <option value="rendah">Rendah</option>
+              <option value="sedang">Sedang</option>
+              <option value="penting">Penting</option>
+              <option value="mendesak">Mendesak</option>
+            </select>
+          </div>
+          <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold mt-2">{timelineMutation.isPending ? 'Saving...' : 'Save'}</button>
         </form>
       </Modal>
 
@@ -320,6 +331,15 @@ const ExpandedProjectDetails = ({ projectId }) => {
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Due Date</label>
             <input type="date" required className="w-full px-4 py-2 rounded-lg border border-gray-200" value={reqFormData.due_date} onChange={(e) => setReqFormData({...reqFormData, due_date: e.target.value})} />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
+            <select className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" value={reqFormData.priority} onChange={(e) => setReqFormData({...reqFormData, priority: e.target.value})}>
+              <option value="rendah">Rendah</option>
+              <option value="sedang">Sedang</option>
+              <option value="penting">Penting</option>
+              <option value="mendesak">Mendesak</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
