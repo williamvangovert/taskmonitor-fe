@@ -14,6 +14,7 @@ import {
   Bell
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const Dashboard = () => {
   const navigate = useNavigate();
