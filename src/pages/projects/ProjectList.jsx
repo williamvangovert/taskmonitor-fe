@@ -371,7 +371,7 @@ const ProjectList = () => {
     end_date: '',
     priority: 'sedang',
     status: 'pending',
-    pic_id: ''
+    pic: ''
   });
 
   const { data: projectsData, isLoading } = useQuery({
@@ -379,10 +379,7 @@ const ProjectList = () => {
     queryFn: () => getProjects(currentPage, filterStatus)
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: getUsers
-  });
+
 
   const handleFilterChange = (status) => {
     setFilterStatus(status);
@@ -428,7 +425,7 @@ const ProjectList = () => {
       end_date: '',
       priority: 'sedang',
       status: 'pending',
-      pic_id: ''
+      pic: ''
     });
   };
 
@@ -442,7 +439,7 @@ const ProjectList = () => {
       end_date: project.end_date ? new Date(project.end_date).toISOString().split('T')[0] : '',
       priority: project.priority,
       status: project.status,
-      pic_id: project.pic?.id || ''
+      pic: project.pic || ''
     });
     setIsModalOpen(true);
   };
@@ -609,11 +606,11 @@ const ProjectList = () => {
                     </td>
                     <td className="px-6 py-5">
                       {project.pic ? (
-                        <div className="flex items-center space-x-2" title={project.pic.name}>
+                        <div className="flex items-center space-x-2" title={project.pic}>
                           <div className="w-7 h-7 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0">
-                            {project.pic.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {project.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                           </div>
-                          <span className="text-xs text-gray-600 truncate max-w-[80px]">{project.pic.name.split(' ')[0]}</span>
+                          <span className="text-xs text-gray-600 truncate max-w-[80px]">{project.pic}</span>
                         </div>
                       ) : (
                         <span className="text-[10px] text-gray-400 italic">Belum ada</span>
@@ -738,16 +735,13 @@ const ProjectList = () => {
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">PIC (Person In Charge)</label>
-            <select
+            <input
+              type="text"
               className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-              value={formData.pic_id}
-              onChange={(e) => setFormData({...formData, pic_id: e.target.value})}
-            >
-              <option value="">-- Pilih PIC --</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
-              ))}
-            </select>
+              value={formData.pic}
+              onChange={(e) => setFormData({...formData, pic: e.target.value})}
+              placeholder="Nama PIC"
+            />
           </div>
           {editingProject && (
             <div>

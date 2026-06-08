@@ -122,12 +122,11 @@ const ProjectDetail = () => {
           {project.pic && (
             <div className="flex items-center space-x-2 mt-3">
               <div className="w-7 h-7 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[10px] font-bold">
-                {project.pic.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {project.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
               </div>
               <div>
                 <span className="text-xs text-gray-500">PIC: </span>
-                <span className="text-xs font-semibold text-gray-700">{project.pic.name}</span>
-                <span className="text-xs text-gray-400"> · {project.pic.email}</span>
+                <span className="text-xs font-semibold text-gray-700">{project.pic}</span>
               </div>
             </div>
           )}
