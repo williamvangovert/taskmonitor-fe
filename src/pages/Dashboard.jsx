@@ -86,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <StatCard 
           title="Total Projects" 
           value={stats?.total_projects || 0} 
@@ -113,22 +113,10 @@ const Dashboard = () => {
           />
         </div>
         <StatCard 
-          title="Timelines Aktif" 
-          value={stats?.active_timelines || 0} 
-          subValue="8 hampir deadline" 
-          icon={Layers} 
-        />
-        <StatCard 
           title="Requirements" 
           value={stats?.total_requirements || 0} 
           subValue={`${stats?.status_distribution?.completed || 0} selesai`} 
           icon={ListTodo} 
-        />
-        <StatCard 
-          title="Pengguna Aktif" 
-          value={stats?.active_users || 0} 
-          subValue="5 departemen" 
-          icon={Users} 
         />
         <StatCard 
           title="Avg Progress" 
@@ -264,7 +252,16 @@ const Dashboard = () => {
                     formatter={(value) => [`${value} tasks`, 'Jumlah']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={48} 
+                    iconType="circle" 
+                    formatter={(value, entry) => {
+                      const totalVal = pieData.reduce((sum, item) => sum + item.value, 0);
+                      const percentage = totalVal > 0 ? ((entry.payload.value / totalVal) * 100).toFixed(0) : 0;
+                      return `${value}: ${entry.payload.value} (${percentage}%)`;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

@@ -122,7 +122,16 @@ const Analytics = () => {
                     formatter={(value) => [`${value} tasks`, 'Jumlah']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={48} 
+                    iconType="circle" 
+                    formatter={(value, entry) => {
+                      const totalVal = pieData.reduce((sum, item) => sum + item.value, 0);
+                      const percentage = totalVal > 0 ? ((entry.payload.value / totalVal) * 100).toFixed(0) : 0;
+                      return `${value}: ${entry.payload.value} (${percentage}%)`;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
