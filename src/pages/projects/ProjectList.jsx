@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, createProject, updateProject, deleteProject, getProject, getUsers } from '../../api/projects';
-import { createTimeline, updateTimeline, deleteTimeline } from '../../api/timelines';
-import { createRequirement, updateRequirement, deleteRequirement } from '../../api/requirements';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Layers, FileText, Clock, CheckCircle } from 'lucide-react';
+import { getProjects, createProject, updateProject, deleteProject } from '../../api/projects';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 const ExpandedProjectDetails = ({ projectId }) => {
@@ -363,7 +361,6 @@ const ProjectList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [expandedProjects, setExpandedProjects] = useState(new Set());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -379,21 +376,9 @@ const ProjectList = () => {
     queryFn: () => getProjects(currentPage, filterStatus)
   });
 
-
-
   const handleFilterChange = (status) => {
     setFilterStatus(status);
     setCurrentPage(1);
-  };
-
-  const toggleExpandProject = (e, projectId) => {
-    e.stopPropagation();
-    setExpandedProjects(prev => {
-      const next = new Set(prev);
-      if (next.has(projectId)) next.delete(projectId);
-      else next.add(projectId);
-      return next;
-    });
   };
 
   const projects = projectsData?.data;
@@ -492,12 +477,6 @@ const ProjectList = () => {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Keterangan A/B Testing */}
-        <div className="bg-blue-50 border-b border-blue-100 p-3 px-4 text-xs text-blue-800 flex items-center justify-center font-medium space-x-2">
-          <span>🔵 <b>Mode A</b>: Navigasi per halaman</span>
-          <span className="text-gray-300">|</span>
-          <span className="text-green-700">🟢 <b>Mode B</b>: Expand di tempat</span>
-        </div>
 
         <div className="p-4 border-b border-gray-50 flex space-x-2">
           <button 
@@ -547,31 +526,14 @@ const ProjectList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {projects?.map((project, index) => {
-              const mode = index % 2 === 0 ? 'A' : 'B';
-              const isExpanded = expandedProjects.has(project.id);
-              
-              return (
-                <React.Fragment key={project.id}>
+            {projects?.map((project) => (
+              <React.Fragment key={project.id}>
                   <tr
-                    onClick={(e) => {
-                      if (mode === 'A') {
-                        navigate(`/projects/${project.id}`);
-                      } else {
-                        toggleExpandProject(e, project.id);
-                      }
-                    }}
+                    onClick={() => navigate(`/projects/${project.id}`)}
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-5">
-                      <div className="flex items-center space-x-2">
-                        <div className="font-bold text-gray-800 text-sm">{project.title}</div>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                          mode === 'A' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                        }`}>
-                          Mode {mode}
-                        </span>
-                      </div>
+                      <div className="font-bold text-gray-800 text-sm">{project.title}</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">
                         {project.timelines_count || 0} timelines · {project.requirements_count || 0} reqs
                       </div>
@@ -618,11 +580,6 @@ const ProjectList = () => {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        {mode === 'B' && (
-                          <div className={`p-1 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown size={16} />
-                          </div>
-                        )}
                         <button
                           onClick={(e) => openEditModal(e, project)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -638,18 +595,8 @@ const ProjectList = () => {
                       </div>
                     </td>
                   </tr>
-                  
-                  {/* Expanded Row for Mode B */}
-                  {mode === 'B' && isExpanded && (
-                    <tr>
-                      <td colSpan="7" className="p-0 border-b border-gray-100 bg-gray-50/50">
-                        <ExpandedProjectDetails projectId={project.id} />
-                      </td>
-                    </tr>
-                  )}
                 </React.Fragment>
-              );
-            })}
+            ))}
           </tbody>
         </table>
 

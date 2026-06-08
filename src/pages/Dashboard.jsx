@@ -16,6 +16,42 @@ import {
 import Modal from '../components/common/Modal';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
+// Helper function to group tasks by project and timeline
+const groupTasks = (tasks) => {
+  if (!tasks) return [];
+  const projectsMap = {};
+  
+  tasks.forEach(task => {
+    const projectTitle = task.timeline?.project?.title || 'Project Tanpa Nama';
+    const projectId = task.timeline?.project?.id || 'unknown';
+    const timelineTitle = task.timeline?.title || 'Timeline Tanpa Nama';
+    const timelineId = task.timeline?.id || 'unknown';
+    
+    if (!projectsMap[projectId]) {
+      projectsMap[projectId] = {
+        id: projectId,
+        title: projectTitle,
+        timelines: {}
+      };
+    }
+    
+    if (!projectsMap[projectId].timelines[timelineId]) {
+      projectsMap[projectId].timelines[timelineId] = {
+        id: timelineId,
+        title: timelineTitle,
+        tasks: []
+      };
+    }
+    
+    projectsMap[projectId].timelines[timelineId].tasks.push(task);
+  });
+  
+  return Object.values(projectsMap).map(project => ({
+    ...project,
+    timelines: Object.values(project.timelines)
+  }));
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { data: stats, isLoading } = useQuery({
@@ -74,6 +110,72 @@ const Dashboard = () => {
     { name: 'Aman (On Track)', value: onTrack, color: '#3b82f6' }
   ].filter(item => item.value > 0);
 
+  const renderGroupedTasks = (tasks, type = 'overdue') => {
+    const grouped = groupTasks(tasks);
+    if (grouped.length === 0) {
+      return (
+        <div className="text-sm text-gray-500 text-center py-8 italic bg-gray-50 rounded-lg">
+          Tidak ada tugas {type === 'overdue' ? 'melewati tenggat' : 'mendekati deadline'}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+        {grouped.map(project => (
+          <div key={project.id} className="border border-gray-100 rounded-lg overflow-hidden bg-gray-50/50">
+            {/* Project Header */}
+            <div className="bg-gray-100/70 px-3 py-1.5 border-b border-gray-200/50 flex items-center justify-between">
+              <span className="font-bold text-[11px] text-gray-700 tracking-wide uppercase">Project: {project.title}</span>
+            </div>
+            
+            <div className="p-2 space-y-3">
+              {project.timelines.map(timeline => (
+                <div key={timeline.id} className="space-y-1.5">
+                  {/* Timeline Sub-header */}
+                  <div className="text-[10px] font-bold text-primary-600 px-1.5 flex items-center space-x-1 uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 bg-primary-500 rounded-full"></span>
+                    <span>Timeline: {timeline.title}</span>
+                  </div>
+                  
+                  {/* Tasks List */}
+                  <div className="space-y-1 pl-1.5">
+                    {timeline.tasks.map(task => (
+                      <div 
+                        key={task.id}
+                        onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                        className="flex items-center justify-between p-2.5 hover:bg-white border border-transparent hover:border-gray-100 rounded-md transition-all cursor-pointer bg-white"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold text-gray-800">{task.title}</span>
+                          <span className="text-[10px] text-gray-400">
+                            Assigned: {task.assigned_user?.name || 'Unassigned'}
+                          </span>
+                        </div>
+                        
+                        {type === 'overdue' ? (
+                          <span className="text-red-600 font-bold text-[10px] bg-red-50 px-2 py-0.5 rounded-full">
+                            +{task.days_late} hari
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            task.days_until <= 1 ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
+                          }`}>
+                            {task.days_until === 0 ? 'Hari ini' : task.days_until === 1 ? 'Besok' : `H-${task.days_until}`}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (isLoading) return <div className="p-8 text-center text-gray-500">Memuat data...</div>;
 
   return (
@@ -117,6 +219,7 @@ const Dashboard = () => {
           value={stats?.total_requirements || 0} 
           subValue={`${stats?.status_distribution?.completed || 0} selesai`} 
           icon={ListTodo} 
+          color="green"
         />
         <StatCard 
           title="Avg Progress" 
@@ -128,55 +231,25 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Overdue Tasks List */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col h-[450px]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-gray-800">Overdue Tasks</h2>
             <button className="text-primary-600 text-sm font-medium flex items-center hover:underline">
               Lihat semua <ChevronRight size={16} />
             </button>
           </div>
-          <div className="space-y-4">
-            {overdueTasks?.slice(0, 4).map((task) => (
-              <div 
-                key={task.id} 
-                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <span className="text-red-600 font-bold text-sm bg-red-50 px-2 py-1 rounded">+{task.days_late}d</span>
-                  <div>
-                    <div className="font-semibold text-gray-800 text-sm">{task.title}</div>
-                    <div className="text-xs text-gray-400">{task.assigned_user?.name || 'Unassigned'}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex-1 overflow-hidden">
+            {renderGroupedTasks(overdueTasks, 'overdue')}
           </div>
         </div>
 
         {/* Upcoming Deadlines */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col h-[450px]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-gray-800">Upcoming Deadlines</h2>
           </div>
-          <div className="space-y-4">
-            {upcomingTasks?.slice(0, 4).map((task) => (
-              <div 
-                key={task.id} 
-                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <div>
-                  <div className="font-semibold text-gray-800 text-sm">{task.title}</div>
-                  <div className="text-xs text-gray-400">H-{task.days_until} · {task.timeline?.project?.title}</div>
-                </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${
-                  task.days_until <= 1 ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
-                }`}>
-                  {task.days_until === 0 ? 'Hari ini' : task.days_until === 1 ? 'Besok' : `H-${task.days_until}`}
-                </span>
-              </div>
-            ))}
+          <div className="flex-1 overflow-hidden">
+            {renderGroupedTasks(upcomingTasks, 'upcoming')}
           </div>
         </div>
       </div>

@@ -18,7 +18,8 @@ const TimelineDetail = () => {
     end_date: '',
     due_date: '',
     priority: 'sedang',
-    status: 'pending'
+    status: 'pending',
+    pic: ''
   });
   
   const { data: requirements, isLoading, error } = useQuery({
@@ -62,7 +63,8 @@ const TimelineDetail = () => {
       description: '',
       due_date: '',
       priority: 'sedang',
-      status: 'pending'
+      status: 'pending',
+      pic: ''
     });
   };
 
@@ -76,7 +78,8 @@ const TimelineDetail = () => {
       end_date: req.end_date ? new Date(req.end_date).toISOString().split('T')[0] : '',
       due_date: req.due_date ? new Date(req.due_date).toISOString().split('T')[0] : '',
       priority: req.priority,
-      status: req.status || 'pending'
+      status: req.status || 'pending',
+      pic: req.pic || ''
     });
     setIsModalOpen(true);
   };
@@ -150,6 +153,7 @@ const TimelineDetail = () => {
             <thead className="bg-gray-50 text-gray-400 text-[10px] uppercase font-bold">
               <tr>
                 <th className="px-6 py-4">Task Name</th>
+                <th className="px-6 py-4">PIC</th>
                 <th className="px-6 py-4">Deadline</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Priority</th>
@@ -161,6 +165,18 @@ const TimelineDetail = () => {
                 <tr key={req.id} className={`hover:bg-gray-50 ${req.status === 'completed' ? 'opacity-70' : ''}`}>
                   <td className={`px-6 py-4 font-semibold text-sm ${req.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
                     {req.title}
+                  </td>
+                  <td className="px-6 py-4">
+                    {req.pic ? (
+                      <div className="flex items-center space-x-2" title={req.pic}>
+                        <div className="w-6 h-6 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[9px] font-bold shrink-0">
+                          {req.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </div>
+                        <span className="text-xs text-gray-600 truncate max-w-[80px]">{req.pic}</span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 italic">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-xs text-gray-500">
                     {req.start_date && req.end_date ? (
@@ -305,6 +321,16 @@ const TimelineDetail = () => {
               className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
               value={formData.due_date}
               onChange={(e) => setFormData({...formData, due_date: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">PIC (Person In Charge)</label>
+            <input 
+              type="text" 
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.pic}
+              onChange={(e) => setFormData({...formData, pic: e.target.value})}
+              placeholder="Nama PIC Requirement"
             />
           </div>
           <div>

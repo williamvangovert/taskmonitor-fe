@@ -18,7 +18,8 @@ const ProjectDetail = () => {
     start_date: '',
     end_date: '',
     priority: 'sedang',
-    status: 'pending'
+    status: 'pending',
+    pic: ''
   });
   
   const { data: project, isLoading } = useQuery({
@@ -50,7 +51,8 @@ const ProjectDetail = () => {
       start_date: '',
       end_date: '',
       priority: 'sedang',
-      status: 'pending'
+      status: 'pending',
+      pic: ''
     });
   };
 
@@ -63,7 +65,8 @@ const ProjectDetail = () => {
       start_date: timeline.start_date ? new Date(timeline.start_date).toISOString().split('T')[0] : '',
       end_date: timeline.end_date ? new Date(timeline.end_date).toISOString().split('T')[0] : '',
       priority: timeline.priority,
-      status: timeline.status || 'pending'
+      status: timeline.status || 'pending',
+      pic: timeline.pic || ''
     });
     setIsModalOpen(true);
   };
@@ -171,6 +174,14 @@ const ProjectDetail = () => {
                     {new Date(timeline.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} · 
                     {timeline.duration_days} hari
                   </div>
+                  {timeline.pic && (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <div className="w-5 h-5 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[9px] font-bold">
+                        {timeline.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </div>
+                      <span className="text-xs text-gray-500">PIC: <span className="font-semibold">{timeline.pic}</span></span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="flex items-center space-x-2 mb-2 justify-end">
@@ -248,6 +259,16 @@ const ProjectDetail = () => {
                 onChange={(e) => setFormData({...formData, end_date: e.target.value})}
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">PIC (Person In Charge)</label>
+            <input 
+              type="text" 
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.pic}
+              onChange={(e) => setFormData({...formData, pic: e.target.value})}
+              placeholder="Nama PIC Timeline"
+            />
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Priority</label>
