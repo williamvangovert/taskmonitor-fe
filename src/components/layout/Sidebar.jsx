@@ -27,7 +27,7 @@ const Sidebar = ({ onClose }) => {
         onClick={onClose}
         className="p-6 text-xl font-bold border-b border-gray-800 block hover:text-primary-400 transition-colors"
       >
-        TaskMonitor
+        TaskMonitor HCISA
       </Link>
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">

@@ -14,7 +14,7 @@ const Topbar = ({ onMenuToggle }) => {
           <Menu size={20} />
         </button>
         <div className="text-sm text-gray-500 font-medium">
-          Monitoring IT Projects
+          Monitoring HCISA Projects
         </div>
       </div>
       <div className="flex items-center space-x-4">
