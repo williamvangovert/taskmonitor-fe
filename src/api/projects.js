@@ -23,3 +23,8 @@ export const updateProject = async (id, projectData) => {
 export const deleteProject = async (id) => {
   await axios.delete(`/projects/${id}`);
 };
+
+export const getUsers = async () => {
+  const { data } = await axios.get('/users');
+  return data;
+};

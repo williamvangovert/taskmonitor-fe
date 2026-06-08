@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, createProject, updateProject, deleteProject, getProject } from '../../api/projects';
+import { getProjects, createProject, updateProject, deleteProject, getProject, getUsers } from '../../api/projects';
 import { createTimeline, updateTimeline, deleteTimeline } from '../../api/timelines';
 import { createRequirement, updateRequirement, deleteRequirement } from '../../api/requirements';
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Layers, FileText, Clock, CheckCircle } from 'lucide-react';
@@ -370,12 +370,18 @@ const ProjectList = () => {
     start_date: '',
     end_date: '',
     priority: 'sedang',
-    status: 'pending'
+    status: 'pending',
+    pic_id: ''
   });
 
   const { data: projectsData, isLoading } = useQuery({
     queryKey: ['projects', currentPage, filterStatus],
     queryFn: () => getProjects(currentPage, filterStatus)
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers
   });
 
   const handleFilterChange = (status) => {
@@ -421,7 +427,8 @@ const ProjectList = () => {
       start_date: '',
       end_date: '',
       priority: 'sedang',
-      status: 'pending'
+      status: 'pending',
+      pic_id: ''
     });
   };
 
@@ -434,7 +441,8 @@ const ProjectList = () => {
       start_date: project.start_date ? new Date(project.start_date).toISOString().split('T')[0] : '',
       end_date: project.end_date ? new Date(project.end_date).toISOString().split('T')[0] : '',
       priority: project.priority,
-      status: project.status
+      status: project.status,
+      pic_id: project.pic?.id || ''
     });
     setIsModalOpen(true);
   };
@@ -600,9 +608,16 @@ const ProjectList = () => {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="w-7 h-7 bg-blue-100 text-blue-700 flex items-center justify-center rounded-full text-[10px] font-bold">
-                        {project.creator?.name?.split(' ').map(n => n[0]).join('') || '??'}
-                      </div>
+                      {project.pic ? (
+                        <div className="flex items-center space-x-2" title={project.pic.name}>
+                          <div className="w-7 h-7 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0">
+                            {project.pic.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </div>
+                          <span className="text-xs text-gray-600 truncate max-w-[80px]">{project.pic.name.split(' ')[0]}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 italic">Belum ada</span>
+                      )}
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end space-x-2">
@@ -719,6 +734,19 @@ const ProjectList = () => {
               <option value="sedang">Sedang</option>
               <option value="penting">Penting</option>
               <option value="mendesak">Mendesak</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">PIC (Person In Charge)</label>
+            <select
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              value={formData.pic_id}
+              onChange={(e) => setFormData({...formData, pic_id: e.target.value})}
+            >
+              <option value="">-- Pilih PIC --</option>
+              {users.map(user => (
+                <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
+              ))}
             </select>
           </div>
           {editingProject && (

@@ -119,6 +119,18 @@ const ProjectDetail = () => {
             {new Date(project.end_date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} · 
             {project.timelines?.length || 0} Timelines · {project.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Requirements
           </div>
+          {project.pic && (
+            <div className="flex items-center space-x-2 mt-3">
+              <div className="w-7 h-7 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[10px] font-bold">
+                {project.pic.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">PIC: </span>
+                <span className="text-xs font-semibold text-gray-700">{project.pic.name}</span>
+                <span className="text-xs text-gray-400"> · {project.pic.email}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
