@@ -1,14 +1,21 @@
-import React from 'react';
-import { User, Bell } from 'lucide-react';
+import { User, Bell, Menu } from 'lucide-react';
 
-const Topbar = () => {
+const Topbar = ({ onMenuToggle }) => {
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : { name: 'Administrator' };
 
   return (
-    <div className="h-16 bg-white border-b flex items-center justify-between px-6">
-      <div className="text-sm text-gray-500">
-        Monitoring IT Projects
+    <div className="h-16 bg-white border-b flex items-center justify-between px-4 sm:px-6">
+      <div className="flex items-center space-x-3">
+        <button 
+          onClick={onMenuToggle}
+          className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 lg:hidden"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="text-sm text-gray-500 font-medium">
+          Monitoring IT Projects
+        </div>
       </div>
       <div className="flex items-center space-x-4">
         <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 relative">

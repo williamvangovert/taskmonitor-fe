@@ -77,7 +77,7 @@ const Dashboard = () => {
   if (isLoading) return <div className="p-8 text-center text-gray-500">Memuat data...</div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-full">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-full">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
         <div className="flex space-x-2">
@@ -241,9 +241,9 @@ const Dashboard = () => {
         </div>
 
         {/* Progres Tenggat Waktu Requirements (Pie Chart) */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[350px]">
           <h2 className="text-lg font-bold text-gray-800 mb-6">Progres Tenggat Waktu Requirements</h2>
-          <div className="h-64 flex-1 flex items-center justify-center">
+          <div className="relative w-full h-[260px] flex-1">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

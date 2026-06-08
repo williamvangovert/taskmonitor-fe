@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, Bell, Settings, LogOut, AlertTriangle, TrendingUp } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
   const location = useLocation();
   
   const menuItems = [
@@ -22,7 +22,11 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-gray-900 h-screen text-white flex flex-col">
-      <Link to="/" className="p-6 text-xl font-bold border-b border-gray-800 block hover:text-primary-400 transition-colors">
+      <Link 
+        to="/" 
+        onClick={onClose}
+        className="p-6 text-xl font-bold border-b border-gray-800 block hover:text-primary-400 transition-colors"
+      >
         TaskMonitor
       </Link>
       <nav className="flex-1 p-4 overflow-y-auto">
@@ -31,6 +35,7 @@ const Sidebar = () => {
             <li key={item.path}>
               <Link
                 to={item.path}
+                onClick={onClose}
                 className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
                   location.pathname === item.path ? 'bg-primary-600' : 'hover:bg-gray-800'
                 }`}
@@ -44,7 +49,10 @@ const Sidebar = () => {
       </nav>
       <div className="p-4 border-t border-gray-800">
         <button 
-          onClick={handleLogout}
+          onClick={() => {
+            onClose();
+            handleLogout();
+          }}
           className="flex items-center space-x-3 p-3 w-full rounded-lg hover:bg-gray-800 transition-colors"
         >
           <LogOut size={20} />
