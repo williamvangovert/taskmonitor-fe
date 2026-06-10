@@ -20,10 +20,12 @@ const Analytics = () => {
   });
 
 
-  const statusData = stats?.status_distribution ? Object.keys(stats.status_distribution).map(key => ({
-    name: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
-    value: parseInt(stats.status_distribution[key] || 0)
-  })) : [];
+  const statusData = stats?.status_distribution ? Object.keys(stats.status_distribution)
+    .filter(key => key !== 'in_progress')
+    .map(key => ({
+      name: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
+      value: parseInt(stats.status_distribution[key] || 0)
+    })) : [];
 
   const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#ef4444', '#6366f1'];
   
