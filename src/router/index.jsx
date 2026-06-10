@@ -8,6 +8,7 @@ import Settings from '../pages/Settings';
 import Login from '../pages/Login';
 import ProjectList from '../pages/projects/ProjectList';
 import ProjectDetail from '../pages/projects/ProjectDetail';
+import EnhancementDetail from '../pages/enhancements/EnhancementDetail';
 import TimelineDetail from '../pages/timelines/TimelineDetail';
 
 const ProtectedRoute = () => {
@@ -61,6 +62,10 @@ const router = createBrowserRouter([
               {
                 path: ':id',
                 element: <ProjectDetail />,
+              },
+              {
+                path: ':projectId/enhancements/:enhancementId',
+                element: <EnhancementDetail />,
               }
             ]
           },
