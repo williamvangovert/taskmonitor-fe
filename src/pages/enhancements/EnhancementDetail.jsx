@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProject } from '../../api/projects';
+import { getEnhancement } from '../../api/enhancements';
 import { createTimeline, updateTimeline, deleteTimeline } from '../../api/timelines';
-import { createEnhancement, updateEnhancement, deleteEnhancement } from '../../api/enhancements';
-import { ArrowLeft, Plus, ChevronRight, Edit2, Trash2, FolderPlus } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
-const ProjectDetail = () => {
-  const { id } = useParams();
+const EnhancementDetail = () => {
+  const { projectId, enhancementId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,48 +21,28 @@ const ProjectDetail = () => {
     status: 'pending',
     pic: ''
   });
-
-  const [isEnhancementModalOpen, setIsEnhancementModalOpen] = useState(false);
-  const [editingEnhancement, setEditingEnhancement] = useState(null);
-  const [enhancementFormData, setEnhancementFormData] = useState({
-    title: '',
-    description: '',
-    status: 'pending',
-    pic: ''
-  });
   
-  const { data: project, isLoading } = useQuery({
-    queryKey: ['project', id],
-    queryFn: () => getProject(id),
+  const { data: enhancement, isLoading } = useQuery({
+    queryKey: ['enhancement', projectId, enhancementId],
+    queryFn: () => getEnhancement(projectId, enhancementId),
   });
 
   const mutation = useMutation({
-    mutationFn: (data) => editingTimeline ? updateTimeline(id, editingTimeline.id, data) : createTimeline(id, data),
+    mutationFn: (data) => editingTimeline 
+      ? updateTimeline(projectId, editingTimeline.id, { ...data, enhancement_id: enhancementId }) 
+      : createTimeline(projectId, { ...data, enhancement_id: enhancementId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.invalidateQueries({ queryKey: ['enhancement', projectId, enhancementId] });
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       closeModal();
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (timelineId) => deleteTimeline(id, timelineId),
+    mutationFn: (timelineId) => deleteTimeline(projectId, timelineId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', id] });
-    }
-  });
-
-  const enhancementMutation = useMutation({
-    mutationFn: (data) => editingEnhancement ? updateEnhancement(id, editingEnhancement.id, data) : createEnhancement(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', id] });
-      closeEnhancementModal();
-    }
-  });
-
-  const deleteEnhancementMutation = useMutation({
-    mutationFn: (enhancementId) => deleteEnhancement(id, enhancementId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.invalidateQueries({ queryKey: ['enhancement', projectId, enhancementId] });
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
     }
   });
 
@@ -76,17 +55,6 @@ const ProjectDetail = () => {
       start_date: '',
       end_date: '',
       priority: 'sedang',
-      status: 'pending',
-      pic: ''
-    });
-  };
-
-  const closeEnhancementModal = () => {
-    setIsEnhancementModalOpen(false);
-    setEditingEnhancement(null);
-    setEnhancementFormData({
-      title: '',
-      description: '',
       status: 'pending',
       pic: ''
     });
@@ -107,18 +75,6 @@ const ProjectDetail = () => {
     setIsModalOpen(true);
   };
 
-  const openEnhancementEditModal = (e, enhancement) => {
-    e.stopPropagation();
-    setEditingEnhancement(enhancement);
-    setEnhancementFormData({
-      title: enhancement.title,
-      description: enhancement.description || '',
-      status: enhancement.status || 'pending',
-      pic: enhancement.pic || ''
-    });
-    setIsEnhancementModalOpen(true);
-  };
-
   const handleDelete = (e, timelineId) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this timeline?')) {
@@ -131,18 +87,6 @@ const ProjectDetail = () => {
     mutation.mutate(formData);
   };
 
-  const handleEnhancementSubmit = (e) => {
-    e.preventDefault();
-    enhancementMutation.mutate(enhancementFormData);
-  };
-
-  const handleDeleteEnhancement = (e, enhancementId) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this enhancement?')) {
-      deleteEnhancementMutation.mutate(enhancementId);
-    }
-  };
-
   if (isLoading) return <div className="p-8">Memuat data...</div>;
 
   return (
@@ -153,29 +97,24 @@ const ProjectDetail = () => {
           <div className="flex items-center space-x-2 text-sm text-blue-600 font-medium mb-4">
             <Link to="/projects">Projects</Link>
             <ChevronRight size={14} className="text-gray-400" />
-            <span className="text-gray-500">{project.title}</span>
+            <Link to={`/projects/${projectId}`}>Project Details</Link>
+            <ChevronRight size={14} className="text-gray-400" />
+            <span className="text-gray-500">{enhancement.title}</span>
           </div>
           
           <button 
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate(`/projects/${projectId}`)}
             className="flex items-center space-x-2 text-primary-600 font-semibold text-sm hover:underline mb-4"
           >
             <ArrowLeft size={16} />
-            <span>Kembali ke Projects</span>
+            <span>Kembali ke Project</span>
           </button>
           
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-800">{project.title}</h1>
-            <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase">
-              {project.status?.replace('_', ' ')}
+            <h1 className="text-2xl font-bold text-gray-800">{enhancement.title}</h1>
+            <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-bold uppercase">
+              {enhancement.status?.replace('_', ' ')}
             </span>
-            <button 
-              onClick={() => setIsEnhancementModalOpen(true)}
-              className="flex items-center space-x-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-lg shadow-sm font-semibold hover:bg-indigo-100 transition-colors"
-            >
-              <FolderPlus size={18} />
-              <span>New Enhancement</span>
-            </button>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -185,18 +124,19 @@ const ProjectDetail = () => {
             </button>
           </div>
           <div className="text-xs text-gray-400 mt-2">
-            {new Date(project.start_date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} - 
-            {new Date(project.end_date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} · 
-            {project.timelines?.length || 0} Timelines · {project.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Requirements
+            {enhancement.description}
           </div>
-          {project.pic && (
+          <div className="text-xs text-gray-400 mt-2">
+            {enhancement.timelines?.length || 0} Timelines · {enhancement.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Requirements
+          </div>
+          {enhancement.pic && (
             <div className="flex items-center space-x-2 mt-3">
               <div className="w-7 h-7 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[10px] font-bold">
-                {project.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                {enhancement.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
               </div>
               <div>
                 <span className="text-xs text-gray-500">PIC: </span>
-                <span className="text-xs font-semibold text-gray-700">{project.pic}</span>
+                <span className="text-xs font-semibold text-gray-700">{enhancement.pic}</span>
               </div>
             </div>
           )}
@@ -206,98 +146,29 @@ const ProjectDetail = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Project</div>
-          <div className="text-4xl font-bold text-blue-600 mb-1">{project.progress_percentage}%</div>
-          <div className="text-xs text-gray-400">Rata-rata semua timeline</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Enhancement</div>
+          <div className="text-4xl font-bold text-indigo-600 mb-1">{enhancement.progress_percentage}%</div>
+          <div className="text-xs text-gray-400">Rata-rata semua timeline di Enhancement ini</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase mb-2 text-red-500">Overdue Timelines</div>
           <div className="text-4xl font-bold text-gray-800 mb-1">
-            {project.timelines?.filter(t => t.status === 'overdue').length || 0}
+            {enhancement.timelines?.filter(t => t.status === 'overdue').length || 0}
           </div>
           <div className="text-xs text-gray-400">Perlu perhatian</div>
         </div>
       </div>
 
-      {/* Enhancements List */}
-      <div className="mb-8">
-        <h2 className="text-sm font-bold text-gray-500 uppercase mb-4 tracking-wider flex items-center justify-between">
-          <span>ENHANCEMENTS / SUB-PROJECTS</span>
-        </h2>
-        {project.enhancements?.length === 0 ? (
-          <div className="text-sm text-gray-500 p-4 border border-dashed rounded-xl text-center">Belum ada enhancement di project ini.</div>
-        ) : (
-          <div className="space-y-4">
-            {project.enhancements?.map((enhancement) => (
-              <div 
-                key={enhancement.id}
-                onClick={() => navigate(`/projects/${id}/enhancements/${enhancement.id}`)}
-                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-indigo-800 text-lg group-hover:text-indigo-600 transition-colors">
-                      {enhancement.title}
-                    </h3>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {enhancement.description}
-                    </div>
-                    {enhancement.pic && (
-                      <div className="flex items-center space-x-1 mt-1">
-                        <div className="w-5 h-5 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full text-[9px] font-bold">
-                          {enhancement.pic.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                        </div>
-                        <span className="text-xs text-gray-500">PIC: <span className="font-semibold">{enhancement.pic}</span></span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center space-x-2 mb-2 justify-end">
-                      <button 
-                        onClick={(e) => openEnhancementEditModal(e, enhancement)}
-                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button 
-                        onClick={(e) => handleDeleteEnhancement(e, enhancement.id)}
-                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                        enhancement.status === 'overdue' ? 'bg-red-50 text-red-600' : 
-                        enhancement.status === 'completed' ? 'bg-green-50 text-green-600' :
-                        'bg-indigo-50 text-indigo-600'
-                      }`}>
-                        {enhancement.status?.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-gray-600 mt-2">{enhancement.progress_percentage}%</div>
-                    <div className="text-[10px] text-gray-400">{enhancement.timelines_count || 0} timelines</div>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      enhancement.status === 'overdue' ? 'bg-red-500' : 'bg-indigo-500'
-                    }`} 
-                    style={{ width: `${enhancement.progress_percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Timelines List */}
       <div>
         <h2 className="text-sm font-bold text-gray-500 uppercase mb-4 tracking-wider">
-          DIRECT TIMELINES
+          TIMELINES — KLIK UNTUK LIHAT REQUIREMENTS
         </h2>
         <div className="space-y-4">
-          {project.timelines?.map((timeline) => (
+          {enhancement.timelines?.length === 0 && (
+            <div className="text-sm text-gray-500 p-4 border border-dashed rounded-xl text-center">Belum ada timeline di Enhancement ini.</div>
+          )}
+          {enhancement.timelines?.map((timeline) => (
             <div 
               key={timeline.id}
               onClick={() => navigate(`/timelines/${timeline.id}`)}
@@ -360,6 +231,8 @@ const ProjectDetail = () => {
           ))}
         </div>
       </div>
+      
+      {/* Timeline Modal Form */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={closeModal} 
@@ -446,71 +319,8 @@ const ProjectDetail = () => {
           </button>
         </form>
       </Modal>
-
-      {/* Enhancement Modal Form */}
-      <Modal 
-        isOpen={isEnhancementModalOpen} 
-        onClose={closeEnhancementModal} 
-        title={editingEnhancement ? "Edit Enhancement" : "Add New Enhancement"}
-      >
-        <form onSubmit={handleEnhancementSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Enhancement Title</label>
-            <input 
-              type="text" 
-              required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              value={enhancementFormData.title}
-              onChange={(e) => setEnhancementFormData({...enhancementFormData, title: e.target.value})}
-              placeholder="E.g. Phase 2 Features"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
-            <textarea 
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-              value={enhancementFormData.description}
-              onChange={(e) => setEnhancementFormData({...enhancementFormData, description: e.target.value})}
-              placeholder="Deskripsi enhancement"
-              rows={3}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">PIC (Person In Charge)</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-              value={enhancementFormData.pic}
-              onChange={(e) => setEnhancementFormData({...enhancementFormData, pic: e.target.value})}
-              placeholder="Nama PIC Enhancement"
-            />
-          </div>
-          {editingEnhancement && (
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Status</label>
-              <select 
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                value={enhancementFormData.status}
-                onChange={(e) => setEnhancementFormData({...enhancementFormData, status: e.target.value})}
-              >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="overdue">Overdue</option>
-              </select>
-            </div>
-          )}
-          <button 
-            type="submit"
-            disabled={enhancementMutation.isPending}
-            className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:bg-gray-400 mt-4"
-          >
-            {enhancementMutation.isPending ? 'Saving...' : (editingEnhancement ? 'Update Enhancement' : 'Add Enhancement')}
-          </button>
-        </form>
-      </Modal>
     </div>
   );
 };
 
-export default ProjectDetail;
+export default EnhancementDetail;
