@@ -14,7 +14,7 @@ import {
   Bell
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 // Helper function to group tasks by project and timeline
 const groupTasks = (tasks) => {
@@ -90,6 +90,14 @@ const Dashboard = () => {
     queryKey: ['dashboard-critical'],
     queryFn: async () => {
       const { data } = await axios.get('/dashboard/critical');
+      return data;
+    }
+  });
+
+  const { data: picPerformance } = useQuery({
+    queryKey: ['dashboard-pic-performance'],
+    queryFn: async () => {
+      const { data } = await axios.get('/dashboard/pic-performance');
       return data;
     }
   });
@@ -227,6 +235,65 @@ const Dashboard = () => {
           subValue="Semua project aktif" 
           icon={TrendingUp} 
         />
+      </div>
+
+      {/* PIC Performance Section - Moved to top */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[400px]">
+          <h2 className="text-lg font-bold text-gray-800 mb-6">Kinerja PIC (Person In Charge)</h2>
+          <div className="relative w-full flex-1">
+            {picPerformance?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={picPerformance}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    cursor={{ fill: '#f9fafb' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend iconType="circle" />
+                  <Bar dataKey="completed" name="Selesai" stackId="a" fill="#22c55e" radius={[0, 0, 4, 4]} barSize={40} />
+                  <Bar dataKey="not_completed" name="Belum Selesai" stackId="a" fill="#eab308" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
+                Belum ada data PIC
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* PIC Table Details */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[400px] max-h-[400px]">
+          <h2 className="text-lg font-bold text-gray-800 mb-6">Detail Tugas PIC</h2>
+          <div className="flex-1 overflow-auto pr-2 space-y-3">
+            {picPerformance?.length > 0 ? (
+              picPerformance.map((pic) => (
+                <div key={pic.name} className="flex justify-between items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div>
+                    <div className="font-bold text-sm text-gray-800">{pic.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">Total Tugas: {pic.total}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-block">
+                      {pic.completed} Selesai
+                    </div>
+                    <div className="text-[10px] text-yellow-600 mt-1 font-medium bg-yellow-50 px-2 py-0.5 rounded-full inline-block">
+                      {pic.not_completed} Belum
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-400 text-sm italic py-8">Belum ada data</div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
