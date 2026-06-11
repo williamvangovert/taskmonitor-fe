@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
@@ -11,7 +11,11 @@ import {
   Users, 
   TrendingUp,
   ChevronRight,
-  Bell
+  Bell,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Circle
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -103,6 +107,7 @@ const Dashboard = () => {
   });
 
   const [isCriticalModalOpen, setIsCriticalModalOpen] = React.useState(false);
+  const [expandedPic, setExpandedPic] = useState(null);
 
   // Data for Pie Chart
   const total = parseInt(stats?.total_requirements || 0);
@@ -237,21 +242,23 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* PIC Performance Section - Moved to top */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[400px]">
-          <h2 className="text-lg font-bold text-gray-800 mb-6">Kinerja PIC (Person In Charge)</h2>
-          <div className="relative w-full flex-1">
-            {picPerformance?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={picPerformance}
-                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-                >
+      {/* PIC Performance Section */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-gray-800">Kinerja PIC — Tugas per Requirement</h2>
+          <span className="text-xs text-gray-400">{picPerformance?.length || 0} PIC terdaftar</span>
+        </div>
+
+        {/* Bar Chart */}
+        {picPerformance?.length > 0 ? (
+          <>
+            <div className="mb-6">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={picPerformance} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip 
+                  <Tooltip
                     cursor={{ fill: '#f9fafb' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
@@ -260,40 +267,112 @@ const Dashboard = () => {
                   <Bar dataKey="not_completed" name="Belum Selesai" stackId="a" fill="#eab308" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
-                Belum ada data PIC
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* PIC Table Details */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[400px] max-h-[400px]">
-          <h2 className="text-lg font-bold text-gray-800 mb-6">Detail Tugas PIC</h2>
-          <div className="flex-1 overflow-auto pr-2 space-y-3">
-            {picPerformance?.length > 0 ? (
-              picPerformance.map((pic) => (
-                <div key={pic.name} className="flex justify-between items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div>
-                    <div className="font-bold text-sm text-gray-800">{pic.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">Total Tugas: {pic.total}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full inline-block">
-                      {pic.completed} Selesai
+            </div>
+
+            {/* Expandable PIC List */}
+            <div className="space-y-3">
+              {picPerformance.map((pic) => (
+                <div key={pic.name} className="border border-gray-100 rounded-xl overflow-hidden">
+                  {/* PIC Header Row */}
+                  <button
+                    onClick={() => setExpandedPic(expandedPic === pic.name ? null : pic.name)}
+                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        {pic.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-sm text-gray-800">{pic.name}</div>
+                        <div className="text-xs text-gray-500">{pic.total} requirement total</div>
+                      </div>
                     </div>
-                    <div className="text-[10px] text-yellow-600 mt-1 font-medium bg-yellow-50 px-2 py-0.5 rounded-full inline-block">
-                      {pic.not_completed} Belum
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        ✓ {pic.completed} Selesai
+                      </span>
+                      <span className="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+                        ○ {pic.not_completed} Belum
+                      </span>
+                      {expandedPic === pic.name
+                        ? <ChevronUp size={16} className="text-gray-400" />
+                        : <ChevronDown size={16} className="text-gray-400" />}
                     </div>
-                  </div>
+                  </button>
+
+                  {/* Expanded Task List */}
+                  {expandedPic === pic.name && (
+                    <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Not Completed Tasks */}
+                      <div>
+                        <div className="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                          <Circle size={12} className="fill-yellow-400 text-yellow-400" />
+                          <span>Belum Selesai ({pic.not_completed})</span>
+                        </div>
+                        <div className="space-y-2">
+                          {pic.tasks_not_completed?.length === 0 ? (
+                            <div className="text-xs text-gray-400 italic py-2">Semua tugas sudah selesai! 🎉</div>
+                          ) : (
+                            pic.tasks_not_completed?.map((task) => (
+                              <div
+                                key={task.id}
+                                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                                className="flex flex-col p-3 rounded-lg bg-yellow-50 border border-yellow-100 hover:bg-yellow-100 cursor-pointer transition-colors"
+                              >
+                                <span className="text-xs font-semibold text-gray-800">{task.title}</span>
+                                <span className="text-[10px] text-gray-500 mt-0.5">{task.project_title} → {task.timeline_title}</span>
+                                <div className="flex items-center justify-between mt-1">
+                                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                                    task.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                                    task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>{task.status?.replace('_', ' ')}</span>
+                                  {task.due_date && (
+                                    <span className="text-[10px] text-gray-400">
+                                      Due: {new Date(task.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Completed Tasks */}
+                      <div>
+                        <div className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                          <CheckCircle2 size={12} className="text-green-500" />
+                          <span>Sudah Selesai ({pic.completed})</span>
+                        </div>
+                        <div className="space-y-2">
+                          {pic.tasks_completed?.length === 0 ? (
+                            <div className="text-xs text-gray-400 italic py-2">Belum ada tugas yang selesai.</div>
+                          ) : (
+                            pic.tasks_completed?.map((task) => (
+                              <div
+                                key={task.id}
+                                onClick={() => navigate(`/timelines/${task.timeline_id}`)}
+                                className="flex flex-col p-3 rounded-lg bg-green-50 border border-green-100 hover:bg-green-100 cursor-pointer transition-colors"
+                              >
+                                <span className="text-xs font-semibold text-gray-700 line-through decoration-green-400">{task.title}</span>
+                                <span className="text-[10px] text-gray-500 mt-0.5">{task.project_title} → {task.timeline_title}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-400 text-sm italic py-8">Belum ada data</div>
-            )}
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="h-32 flex items-center justify-center text-gray-400 text-sm italic">
+            Belum ada data PIC pada requirement
           </div>
-        </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
