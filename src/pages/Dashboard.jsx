@@ -85,7 +85,7 @@ const Dashboard = () => {
   const { data: projects } = useQuery({
     queryKey: ['dashboard-projects'],
     queryFn: async () => {
-      const { data } = await axios.get('/projects');
+      const { data } = await axios.get('/projects?limit=all');
       return data.data;
     }
   });
