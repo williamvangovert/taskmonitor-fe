@@ -406,7 +406,10 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[350px]">
           <div className="flex justify-between items-center mb-6 shrink-0">
             <h2 className="text-lg font-bold text-gray-800">Progress Project</h2>
-            <button className="text-primary-600 text-sm font-medium flex items-center hover:underline">
+            <button 
+              onClick={() => navigate('/projects')}
+              className="text-primary-600 text-sm font-medium flex items-center hover:underline"
+            >
               Lihat semua <ChevronRight size={16} />
             </button>
           </div>
