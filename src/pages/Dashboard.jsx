@@ -403,16 +403,15 @@ const Dashboard = () => {
       {/* Progress & Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Progress Project Section */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-gray-800">Progress Project</h2>
-              <button className="text-primary-600 text-sm font-medium flex items-center hover:underline">
-                Lihat semua <ChevronRight size={16} />
-              </button>
-            </div>
-            <div className="space-y-6">
-              {projects?.slice(0, 4).map((project) => (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[350px]">
+          <div className="flex justify-between items-center mb-6 shrink-0">
+            <h2 className="text-lg font-bold text-gray-800">Progress Project</h2>
+            <button className="text-primary-600 text-sm font-medium flex items-center hover:underline">
+              Lihat semua <ChevronRight size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto pr-2 space-y-6 max-h-[260px]">
+            {projects?.map((project) => (
                 <div 
                   key={project.id} 
                   onClick={() => navigate(`/projects/${project.id}`)}
@@ -444,7 +443,6 @@ const Dashboard = () => {
                 <div className="text-sm text-gray-500 text-center py-4">Belum ada project</div>
               )}
             </div>
-          </div>
         </div>
 
         {/* Progres Tenggat Waktu Requirements (Pie Chart) */}
