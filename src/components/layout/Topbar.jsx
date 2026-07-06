@@ -1,7 +1,7 @@
 import { User, Bell, Menu } from 'lucide-react';
 
 const Topbar = ({ onMenuToggle }) => {
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : { name: 'Administrator' };
 
   return (
