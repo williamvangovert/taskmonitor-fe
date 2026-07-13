@@ -26,7 +26,7 @@ const Overdue = () => {
           <div>
             <div className="text-xs font-semibold text-gray-500 uppercase">Total Overdue</div>
             <div className="text-3xl font-bold text-gray-800">{overdueTasks?.length || 0}</div>
-            <div className="text-[10px] text-gray-400">Di beberapa project</div>
+            <div className="text-[10px] text-gray-400">Di beberapa aplikasi</div>
           </div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center space-x-4">

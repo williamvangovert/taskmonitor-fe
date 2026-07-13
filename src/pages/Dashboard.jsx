@@ -139,7 +139,7 @@ const Dashboard = () => {
           <div key={project.id} className="border border-gray-100 rounded-lg overflow-hidden bg-gray-50/50">
             {/* Project Header */}
             <div className="bg-gray-100/70 px-3 py-1.5 border-b border-gray-200/50 flex items-center justify-between">
-              <span className="font-bold text-[11px] text-gray-700 tracking-wide uppercase">Project: {project.title}</span>
+              <span className="font-bold text-[11px] text-gray-700 tracking-wide uppercase">Aplikasi: {project.title}</span>
             </div>
             
             <div className="p-2 space-y-3">
@@ -402,10 +402,10 @@ const Dashboard = () => {
 
       {/* Progress & Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Progress Project Section */}
+        {/* Progress Aplikasi Section */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[350px]">
           <div className="flex justify-between items-center mb-6 shrink-0">
-            <h2 className="text-lg font-bold text-gray-800">Progress Project</h2>
+            <h2 className="text-lg font-bold text-gray-800">Progress Aplikasi</h2>
             <button 
               onClick={() => navigate('/projects')}
               className="text-primary-600 text-sm font-medium flex items-center hover:underline"
@@ -443,7 +443,7 @@ const Dashboard = () => {
                 </div>
               ))}
               {(!projects || projects.length === 0) && (
-                <div className="text-sm text-gray-500 text-center py-4">Belum ada project</div>
+                <div className="text-sm text-gray-500 text-center py-4">Belum ada aplikasi</div>
               )}
             </div>
         </div>

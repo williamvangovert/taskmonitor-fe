@@ -95,9 +95,9 @@ const EnhancementDetail = () => {
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center space-x-2 text-sm text-blue-600 font-medium mb-4">
-            <Link to="/projects">Projects</Link>
+            <Link to="/projects">Aplikasi</Link>
             <ChevronRight size={14} className="text-gray-400" />
-            <Link to={`/projects/${projectId}`}>Project Details</Link>
+            <Link to={`/projects/${projectId}`}>Detail Aplikasi</Link>
             <ChevronRight size={14} className="text-gray-400" />
             <span className="text-gray-500">{enhancement.title}</span>
           </div>
@@ -107,7 +107,7 @@ const EnhancementDetail = () => {
             className="flex items-center space-x-2 text-primary-600 font-semibold text-sm hover:underline mb-4"
           >
             <ArrowLeft size={16} />
-            <span>Kembali ke Project</span>
+            <span>Kembali ke Aplikasi</span>
           </button>
           
           <div className="flex items-center space-x-4">

@@ -151,7 +151,7 @@ const ProjectDetail = () => {
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center space-x-2 text-sm text-blue-600 font-medium mb-4">
-            <Link to="/projects">Projects</Link>
+            <Link to="/projects">Aplikasi</Link>
             <ChevronRight size={14} className="text-gray-400" />
             <span className="text-gray-500">{project.title}</span>
           </div>
@@ -161,7 +161,7 @@ const ProjectDetail = () => {
             className="flex items-center space-x-2 text-primary-600 font-semibold text-sm hover:underline mb-4"
           >
             <ArrowLeft size={16} />
-            <span>Kembali ke Projects</span>
+            <span>Kembali ke Aplikasi</span>
           </button>
           
           <div className="flex items-center space-x-4">
@@ -206,7 +206,7 @@ const ProjectDetail = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Project</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Aplikasi</div>
           <div className="text-4xl font-bold text-blue-600 mb-1">{project.progress_percentage}%</div>
           <div className="text-xs text-gray-400">Rata-rata semua timeline</div>
         </div>
@@ -222,10 +222,10 @@ const ProjectDetail = () => {
       {/* Enhancements List */}
       <div className="mb-8">
         <h2 className="text-sm font-bold text-gray-500 uppercase mb-4 tracking-wider flex items-center justify-between">
-          <span>ENHANCEMENTS / SUB-PROJECTS</span>
+          <span>ENHANCEMENTS / SUB-APLIKASI</span>
         </h2>
         {project.enhancements?.length === 0 ? (
-          <div className="text-sm text-gray-500 p-4 border border-dashed rounded-xl text-center">Belum ada enhancement di project ini.</div>
+          <div className="text-sm text-gray-500 p-4 border border-dashed rounded-xl text-center">Belum ada enhancement di aplikasi ini.</div>
         ) : (
           <div className="space-y-4">
             {project.enhancements?.map((enhancement) => (

@@ -9,7 +9,7 @@ const Sidebar = ({ onClose }) => {
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Overdue', path: '/overdue', icon: <AlertTriangle size={20} /> },
     { name: 'Analytics', path: '/analytics', icon: <TrendingUp size={20} /> },
-    { name: 'Projects', path: '/projects', icon: <FolderKanban size={20} /> },
+    { name: 'Aplikasi', path: '/projects', icon: <FolderKanban size={20} /> },
     { name: 'Notifikasi', path: '/notifications', icon: <Bell size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];
