@@ -169,7 +169,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
                     <div>
                       <div className="font-bold text-sm text-gray-800">{timeline.title}</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">
-                        {new Date(timeline.start_date).toLocaleDateString('id-ID')} - {new Date(timeline.end_date).toLocaleDateString('id-ID')} · {timeline.requirements?.length || 0} reqs
+                        {new Date(timeline.start_date).toLocaleDateString('id-ID')} - {new Date(timeline.end_date).toLocaleDateString('id-ID')} · {timeline.requirements?.length || 0} tasks
                       </div>
                     </div>
                   </div>
@@ -200,23 +200,23 @@ const ExpandedProjectDetails = ({ projectId }) => {
                   </div>
                 </div>
 
-                {/* Requirements Dropdown */}
+                {/* Tasks Dropdown */}
                 {isExpanded && (
                   <div className="bg-gray-50 border-t border-gray-100 p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center">
-                        <FileText size={12} className="mr-1" /> Requirements
+                        <FileText size={12} className="mr-1" /> Tasks
                       </div>
                       <button
                         onClick={(e) => openCreateReq(e, timeline.id)}
                         className="flex items-center space-x-1 bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
                       >
                         <Plus size={10} />
-                        <span>Add Req</span>
+                        <span>Add Task</span>
                       </button>
                     </div>
                     {timeline.requirements?.length === 0 ? (
-                      <div className="text-xs text-gray-400 italic">Tidak ada requirement.</div>
+                      <div className="text-xs text-gray-400 italic">Tidak ada task.</div>
                     ) : (
                       <div className="space-y-2">
                         {timeline.requirements?.map(req => (
@@ -259,7 +259,7 @@ const ExpandedProjectDetails = ({ projectId }) => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm('Hapus requirement ini?')) deleteReqMutation.mutate({timelineId: timeline.id, reqId: req.id});
+                                    if (window.confirm('Hapus task ini?')) deleteReqMutation.mutate({timelineId: timeline.id, reqId: req.id});
                                   }}
                                   className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                 >
@@ -309,8 +309,8 @@ const ExpandedProjectDetails = ({ projectId }) => {
         </form>
       </Modal>
 
-      {/* Requirement Modal */}
-      <Modal isOpen={isReqModalOpen} onClose={closeReqModal} title={editingReq ? "Edit Requirement" : "Create Requirement"}>
+      {/* Task Modal */}
+      <Modal isOpen={isReqModalOpen} onClose={closeReqModal} title={editingReq ? "Edit Task" : "Create Task"}>
         <form onSubmit={(e) => { e.preventDefault(); reqMutation.mutate(reqFormData); }} className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
@@ -535,7 +535,7 @@ const ProjectList = () => {
                     <td className="px-6 py-5">
                       <div className="font-bold text-gray-800 text-sm">{project.title}</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">
-                        {project.timelines_count || 0} timelines · {project.requirements_count || 0} reqs
+                        {project.timelines_count || 0} timelines · {project.requirements_count || 0} tasks
                       </div>
                     </td>
                     <td className="px-6 py-5">

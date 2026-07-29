@@ -187,7 +187,7 @@ const ProjectDetail = () => {
           <div className="text-xs text-gray-400 mt-2">
             {new Date(project.start_date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} - 
             {new Date(project.end_date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} · 
-            {project.timelines?.length || 0} Timelines · {project.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Requirements
+            {project.timelines?.length || 0} Timelines · {project.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Tasks
           </div>
           {project.pic && (
             <div className="flex items-center space-x-2 mt-3">
@@ -345,7 +345,7 @@ const ProjectDetail = () => {
                     </span>
                   </div>
                   <div className="text-xs font-bold text-gray-600 mt-2">{timeline.progress_percentage}%</div>
-                  <div className="text-[10px] text-gray-400">{timeline.requirements_count || 0} reqs</div>
+                  <div className="text-[10px] text-gray-400">{timeline.requirements_count || 0} tasks</div>
                 </div>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">

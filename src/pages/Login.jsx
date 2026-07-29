@@ -18,14 +18,21 @@ const Login = () => {
       navigate('/');
     },
     onError: (err) => {
-      setError(err.response?.data?.message || 'Login gagal. Cek email dan password Anda.');
+      const status = err.response?.status;
+
+      if (!err.response || status >= 500) {
+        setError('Server sedang tidak dapat diakses. Silakan coba lagi beberapa saat.');
+        return;
+      }
+
+      setError(err.response.data?.message || 'Login gagal. Cek email dan password Anda.');
     }
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    loginMutation.mutate({ email, password });
+    loginMutation.mutate({ email: email.trim(), password });
   };
 
   return (

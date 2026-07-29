@@ -45,7 +45,7 @@ const Overdue = () => {
         </div>
       </div>
 
-      <h2 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">REQUIREMENTS OVERDUE</h2>
+      <h2 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">TASKS OVERDUE</h2>
       <div className="space-y-4">
         {overdueTasks?.map((task) => (
           <div key={task.id} className="bg-white p-5 rounded-xl border-l-4 border-l-red-500 border border-gray-100 shadow-sm flex items-center justify-between">

@@ -100,9 +100,9 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Progres Deadline Requirements */}
+        {/* Progres Deadline Tasks */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <h2 className="text-sm font-bold text-gray-800 mb-6">Progres Tenggat Waktu Requirements</h2>
+          <h2 className="text-sm font-bold text-gray-800 mb-6">Progres Tenggat Waktu Tasks</h2>
           <div className="h-64">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -138,7 +138,7 @@ const Analytics = () => {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
-                Belum ada data requirements
+                Belum ada data tasks
               </div>
             )}
           </div>

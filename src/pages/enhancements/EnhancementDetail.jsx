@@ -127,7 +127,7 @@ const EnhancementDetail = () => {
             {enhancement.description}
           </div>
           <div className="text-xs text-gray-400 mt-2">
-            {enhancement.timelines?.length || 0} Timelines · {enhancement.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Requirements
+            {enhancement.timelines?.length || 0} Timelines · {enhancement.timelines?.reduce((acc, t) => acc + (t.requirements_count || 0), 0) || 0} Tasks
           </div>
           {enhancement.pic && (
             <div className="flex items-center space-x-2 mt-3">
@@ -162,7 +162,7 @@ const EnhancementDetail = () => {
       {/* Timelines List */}
       <div>
         <h2 className="text-sm font-bold text-gray-500 uppercase mb-4 tracking-wider">
-          TIMELINES — KLIK UNTUK LIHAT REQUIREMENTS
+          TIMELINES — KLIK UNTUK LIHAT TASKS
         </h2>
         <div className="space-y-4">
           {enhancement.timelines?.length === 0 && (
@@ -216,7 +216,7 @@ const EnhancementDetail = () => {
                     </span>
                   </div>
                   <div className="text-xs font-bold text-gray-600 mt-2">{timeline.progress_percentage}%</div>
-                  <div className="text-[10px] text-gray-400">{timeline.requirements_count || 0} reqs</div>
+                  <div className="text-[10px] text-gray-400">{timeline.requirements_count || 0} tasks</div>
                 </div>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">

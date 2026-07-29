@@ -228,7 +228,7 @@ const Dashboard = () => {
           />
         </div>
         <StatCard 
-          title="Requirements" 
+          title="Tasks" 
           value={stats?.total_requirements || 0} 
           subValue={`${stats?.status_distribution?.completed || 0} selesai`} 
           icon={ListTodo} 
@@ -245,7 +245,7 @@ const Dashboard = () => {
       {/* PIC Performance Section */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-gray-800">Kinerja PIC — Tugas per Requirement</h2>
+          <h2 className="text-lg font-bold text-gray-800">Kinerja PIC — Jumlah Tasks</h2>
           <span className="text-xs text-gray-400">{picPerformance?.length || 0} PIC terdaftar</span>
         </div>
 
@@ -284,7 +284,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-left">
                         <div className="font-bold text-sm text-gray-800">{pic.name}</div>
-                        <div className="text-xs text-gray-500">{pic.total} requirement total</div>
+                        <div className="text-xs text-gray-500">Total {pic.total} tasks</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -370,7 +370,7 @@ const Dashboard = () => {
           </>
         ) : (
           <div className="h-32 flex items-center justify-center text-gray-400 text-sm italic">
-            Belum ada data PIC pada requirement
+            Belum ada data PIC pada task
           </div>
         )}
       </div>
@@ -448,9 +448,9 @@ const Dashboard = () => {
             </div>
         </div>
 
-        {/* Progres Tenggat Waktu Requirements (Pie Chart) */}
+        {/* Progres Tenggat Waktu Tasks (Pie Chart) */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col min-h-[350px]">
-          <h2 className="text-lg font-bold text-gray-800 mb-6">Progres Tenggat Waktu Requirements</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-6">Progres Tenggat Waktu Tasks</h2>
           <div className="relative w-full h-[260px] flex-1">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -486,7 +486,7 @@ const Dashboard = () => {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
-                Belum ada data requirements
+                Belum ada data tasks
               </div>
             )}
           </div>
