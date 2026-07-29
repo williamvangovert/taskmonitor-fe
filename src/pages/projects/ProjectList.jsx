@@ -487,6 +487,14 @@ const ProjectList = () => {
           >
             Semua
           </button>
+          <button
+            onClick={() => handleFilterChange('pending')}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filterStatus === 'pending' ? 'bg-gray-200 text-gray-700' : 'text-gray-500 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            Pending
+          </button>
           <button 
             onClick={() => handleFilterChange('in_progress')}
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
