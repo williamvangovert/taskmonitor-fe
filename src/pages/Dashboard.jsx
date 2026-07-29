@@ -518,20 +518,15 @@ const Dashboard = () => {
             stats.requirement_breakdown
               .filter((item) => item.total > 0)
               .map((item) => (
-                <button
+                <div
                   key={item.project_id}
-                  type="button"
-                  onClick={() => {
-                    setIsRequirementsModalOpen(false);
-                    navigate(`/timelines/${item.timeline_id}`);
-                  }}
-                  className="w-full p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-green-50 hover:border-green-100 transition-colors text-left"
+                  className="w-full p-4 rounded-xl border border-gray-100 bg-gray-50"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="font-bold text-gray-800 truncate">{item.project_title}</div>
-                      <div className="text-xs text-gray-500 mt-1 truncate">
-                        Timeline Requirement: {item.timeline_title}
+                      <div className="text-xs text-gray-500 mt-1">
+                        {item.groups.length} timeline Requirement
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -547,7 +542,33 @@ const Dashboard = () => {
                       {item.not_completed} belum selesai
                     </span>
                   </div>
-                </button>
+
+                  <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+                    {item.groups.map((group) => (
+                      <button
+                        key={group.timeline_id}
+                        type="button"
+                        onClick={() => {
+                          setIsRequirementsModalOpen(false);
+                          navigate(`/timelines/${group.timeline_id}`);
+                        }}
+                        className="w-full flex items-center justify-between gap-3 p-3 rounded-lg bg-white border border-gray-100 hover:bg-green-50 hover:border-green-100 transition-colors text-left"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold text-gray-700 truncate">
+                            {group.enhancement_title}
+                          </div>
+                          <div className="text-[10px] text-gray-400 truncate">
+                            Timeline: {group.timeline_title}
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-sm font-bold text-green-600">
+                          {group.total}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))
           ) : (
             <div className="text-center py-8 text-gray-500 italic">
