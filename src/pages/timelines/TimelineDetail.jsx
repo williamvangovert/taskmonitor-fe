@@ -28,6 +28,7 @@ const TimelineDetail = () => {
   });
 
   const invalidateDashboard = () => {
+    queryClient.invalidateQueries({ queryKey: ['enhancement'] });
     queryClient.invalidateQueries({
       predicate: (query) => String(query.queryKey[0]).startsWith('dashboard-'),
     });
