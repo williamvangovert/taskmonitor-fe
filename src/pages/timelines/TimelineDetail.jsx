@@ -27,12 +27,19 @@ const TimelineDetail = () => {
     queryFn: () => getRequirements(tid),
   });
 
+  const invalidateDashboard = () => {
+    queryClient.invalidateQueries({
+      predicate: (query) => String(query.queryKey[0]).startsWith('dashboard-'),
+    });
+  };
+
   const mutation = useMutation({
     mutationFn: (data) => editingRequirement ? updateRequirement(tid, editingRequirement.id, data) : createRequirement(tid, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project'] }); // Invalidate all project details just in case
+      invalidateDashboard();
       closeModal();
     }
   });
@@ -43,6 +50,7 @@ const TimelineDetail = () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project'] });
+      invalidateDashboard();
     }
   });
 
@@ -52,6 +60,7 @@ const TimelineDetail = () => {
       queryClient.invalidateQueries({ queryKey: ['requirements', tid] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project'] });
+      invalidateDashboard();
     }
   });
 

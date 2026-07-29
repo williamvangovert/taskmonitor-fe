@@ -107,6 +107,7 @@ const Dashboard = () => {
   });
 
   const [isCriticalModalOpen, setIsCriticalModalOpen] = React.useState(false);
+  const [isRequirementsModalOpen, setIsRequirementsModalOpen] = React.useState(false);
   const [expandedPic, setExpandedPic] = useState(null);
 
   // Data for Pie Chart
@@ -227,13 +228,26 @@ const Dashboard = () => {
             className="group-hover:shadow-md transition-shadow ring-2 ring-red-500/20"
           />
         </div>
-        <StatCard 
-          title="Tasks" 
-          value={stats?.total_requirements || 0} 
-          subValue={`${stats?.status_distribution?.completed || 0} selesai`} 
-          icon={ListTodo} 
-          color="green"
-        />
+        <div
+          onClick={() => setIsRequirementsModalOpen(true)}
+          className="cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              setIsRequirementsModalOpen(true);
+            }
+          }}
+        >
+          <StatCard
+            title="Total Requirements"
+            value={stats?.total_requirement_tasks || 0}
+            subValue={`${stats?.requirement_applications_count || 0} aplikasi`}
+            icon={ListTodo}
+            color="green"
+            className="group-hover:ring-2 group-hover:ring-green-500/20"
+          />
+        </div>
         <StatCard 
           title="Avg Progress" 
           value="72%" 
@@ -493,7 +507,63 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Critical Deadlines Modal */}
+      {/* Requirements Breakdown Modal */}
+      <Modal
+        isOpen={isRequirementsModalOpen}
+        onClose={() => setIsRequirementsModalOpen(false)}
+        title="Requirements per Aplikasi"
+      >
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+          {stats?.requirement_breakdown?.filter((item) => item.total > 0).length > 0 ? (
+            stats.requirement_breakdown
+              .filter((item) => item.total > 0)
+              .map((item) => (
+                <button
+                  key={item.project_id}
+                  type="button"
+                  onClick={() => {
+                    setIsRequirementsModalOpen(false);
+                    navigate(`/timelines/${item.timeline_id}`);
+                  }}
+                  className="w-full p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-green-50 hover:border-green-100 transition-colors text-left"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="font-bold text-gray-800 truncate">{item.project_title}</div>
+                      <div className="text-xs text-gray-500 mt-1 truncate">
+                        Timeline Requirement: {item.timeline_title}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-2xl font-bold text-green-600">{item.total}</div>
+                      <div className="text-[10px] text-gray-400 uppercase">requirements</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3 text-[10px] font-bold">
+                    <span className="px-2 py-1 rounded-full bg-green-100 text-green-700">
+                      {item.completed} selesai
+                    </span>
+                    <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                      {item.not_completed} belum selesai
+                    </span>
+                  </div>
+                </button>
+              ))
+          ) : (
+            <div className="text-center py-8 text-gray-500 italic">
+              Belum ada requirement pada timeline pertama aplikasi.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-600">Total seluruh aplikasi</span>
+          <span className="text-2xl font-bold text-green-600">
+            {stats?.total_requirement_tasks || 0}
+          </span>
+        </div>
+      </Modal>
+
       <Modal
         isOpen={isCriticalModalOpen}
         onClose={() => setIsCriticalModalOpen(false)}

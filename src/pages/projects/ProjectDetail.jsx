@@ -41,6 +41,7 @@ const ProjectDetail = () => {
     mutationFn: (data) => editingTimeline ? updateTimeline(id, editingTimeline.id, data) : createTimeline(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       closeModal();
     }
   });
@@ -49,6 +50,7 @@ const ProjectDetail = () => {
     mutationFn: (timelineId) => deleteTimeline(id, timelineId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     }
   });
 

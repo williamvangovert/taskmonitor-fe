@@ -34,6 +34,7 @@ const EnhancementDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhancement', projectId, enhancementId] });
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       closeModal();
     }
   });
@@ -43,6 +44,7 @@ const EnhancementDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhancement', projectId, enhancementId] });
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     }
   });
 
